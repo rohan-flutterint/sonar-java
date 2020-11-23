@@ -19,14 +19,12 @@
  */
 package org.sonar.plugins.surefire;
 
-import com.google.common.collect.ImmutableList;
-
+import java.util.Arrays;
+import java.util.List;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.java.JavaConstants;
 import org.sonar.plugins.surefire.api.SurefireUtils;
-
-import java.util.List;
 
 public final class SurefireExtensions {
 
@@ -35,7 +33,7 @@ public final class SurefireExtensions {
 
   @SuppressWarnings("rawtypes")
   public static List getExtensions() {
-    return ImmutableList.of(
+    return Arrays.asList(
         /**
          * @since 4.11
          */

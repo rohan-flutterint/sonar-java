@@ -20,8 +20,6 @@
 package org.sonar.plugins.java;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -39,6 +37,7 @@ import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinitionAnnotationLoader;
 import org.sonar.api.utils.AnnotationUtils;
 import org.sonar.java.checks.CheckList;
+import org.sonar.java.collections.SetUtils;
 import org.sonarsource.analyzer.commons.annotations.DeprecatedRuleKey;
 
 /**
@@ -52,7 +51,7 @@ public class JavaRulesDefinition implements RulesDefinition {
   /**
    * Rule templates have to be manually defined
    */
-  private static final Set<String> TEMPLATE_RULE_KEY = ImmutableSet.of(
+  private static final Set<String> TEMPLATE_RULE_KEY = SetUtils.immutableSetOf(
     "S124",
     "S2253",
     "S3417",
@@ -67,7 +66,7 @@ public class JavaRulesDefinition implements RulesDefinition {
       .createRepository(CheckList.REPOSITORY_KEY, Java.KEY)
       .setName("SonarAnalyzer");
     List<Class<?>> checks = CheckList.getChecks();
-    new RulesDefinitionAnnotationLoader().load(repository, Iterables.toArray(checks, Class.class));
+    new RulesDefinitionAnnotationLoader().load(repository, checks.toArray(new Class[]{}));
     JavaSonarWayProfile.Profile profile = JavaSonarWayProfile.readProfile();
     for (Class ruleClass : checks) {
       newRule(ruleClass, repository, profile);
