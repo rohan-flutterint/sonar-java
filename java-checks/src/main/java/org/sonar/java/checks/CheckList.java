@@ -56,6 +56,7 @@ import org.sonar.java.checks.regex.InvalidRegexCheck;
 import org.sonar.java.checks.regex.PossessiveQuantifierContinuationCheck;
 import org.sonar.java.checks.regex.RedosCheck;
 import org.sonar.java.checks.regex.RegexComplexityCheck;
+import org.sonar.java.checks.regex.RegexStackOverflowCheck;
 import org.sonar.java.checks.regex.ReluctantQuantifierCheck;
 import org.sonar.java.checks.regex.SingleCharacterAlternationCheck;
 import org.sonar.java.checks.regex.StringReplaceCheck;
@@ -597,6 +598,7 @@ public final class CheckList {
       RegexComplexityCheck.class,
       RegexHotspotCheck.class,
       RegexPatternsNeedlesslyCheck.class,
+      RegexStackOverflowCheck.class,
       ReluctantQuantifierCheck.class,
       RepeatAnnotationCheck.class,
       ReplaceGuavaWithJava8Check.class,
