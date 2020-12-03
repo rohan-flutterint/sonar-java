@@ -12,10 +12,11 @@ class RegexStackOverflowCheckWithHighStackConsumption {
     Pattern.compile("(a|hello world)*"), // Noncompliant
     Pattern.compile("(//|#|/\\*)(.|\n)*\\w{5,}"), // Noncompliant
     Pattern.compile("((x|.){42})*"), // Noncompliant
-    Pattern.compile("(abc()()()|def)*"), // Noncompliant
+    Pattern.compile("(abc()()()()|def)*"), // Noncompliant
     Pattern.compile("(?:(a|b)\\1)*"), // Noncompliant
-    // FP because we don't take into account the proper number of characters consumed by \\1:
-    Pattern.compile("(......)(?:\\1|abcd)*"), // Noncompliant
+    Pattern.compile("(?:(ab|b)\\1)*"), // Noncompliant
+    Pattern.compile("(?:(abc|b)\\1)*"), // Noncompliant
+    Pattern.compile("(?:(abcd|b)\\1)*"), // Noncompliant
   };
 
 }

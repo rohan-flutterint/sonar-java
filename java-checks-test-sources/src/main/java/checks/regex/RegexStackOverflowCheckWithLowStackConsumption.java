@@ -11,6 +11,7 @@ public class RegexStackOverflowCheckWithLowStackConsumption {
       "..............................................................................................................)*"),
     Pattern.compile("(hello|world)*"), // Noncompliant
     Pattern.compile("(abc|def)*"), // Noncompliant
+    Pattern.compile("(......)(?:\\1|abcd)*"), // Noncompliant
   };
 
 }

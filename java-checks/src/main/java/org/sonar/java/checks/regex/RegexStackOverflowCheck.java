@@ -21,13 +21,17 @@ package org.sonar.java.checks.regex;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 import org.sonar.java.regex.RegexParseResult;
 import org.sonar.java.regex.ast.AutomatonState;
+import org.sonar.java.regex.ast.BackReferenceTree;
+import org.sonar.java.regex.ast.CapturingGroupTree;
 import org.sonar.java.regex.ast.CharacterTree;
 import org.sonar.java.regex.ast.DisjunctionTree;
 import org.sonar.java.regex.ast.GroupTree;
@@ -89,7 +93,9 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
     }
   }
 
-  private class StackOverflowFinder extends RegexBaseVisitor {
+  class StackOverflowFinder extends RegexBaseVisitor {
+
+    private final Map<CapturingGroupTree, Integer> consumedCharactersByCapturingGroupCache = new HashMap<>();
 
     @Override
     public void visitRepetition(RepetitionTree tree) {
@@ -142,7 +148,8 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
     }
 
     private double stackConsumption(AutomatonState start, AutomatonState stop) {
-      PathInfo path = worstPath(start, stop);
+      Comparator<PathInfo> worstPathComparator = Comparator.comparingDouble(PathInfo::stackConsumptionFactor).reversed();
+      PathInfo path = shortestPath(start, stop, worstPathComparator);
       return path.stackConsumptionFactor();
     }
 
@@ -150,7 +157,7 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
      * We assume that all paths eventually lead to `end`, i.e. `end` must be the end of a construct, such as the end of
      * the regex or the continuation of some sub-expression and `start` must be within that construct.
      */
-    private PathInfo worstPath(AutomatonState start, AutomatonState end) {
+    private PathInfo shortestPath(AutomatonState start, AutomatonState end, Comparator<PathInfo> shortestPathComparator) {
       if (start == end) {
         return new PathInfo(0, 0);
       }
@@ -159,35 +166,53 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
         if (start instanceof CharacterTree && next instanceof CharacterTree) {
           // Consecutive characters don't create an extra recursion, so we skip the character edge between them and use
           // a 1,0 edge instead.
-          return new PathInfo(1, 0).add(worstPath(next, end));
+          return new PathInfo(1, 0).add(shortestPath(next, end, shortestPathComparator));
         }
-        PathInfo path = worstInnerPath((RegexTree) start);
+        PathInfo path = shortestInnerPath((RegexTree) start, shortestPathComparator);
         path.add(edgeCost(next));
-        path.add(worstPath(next, end));
+        path.add(shortestPath(next, end, shortestPathComparator));
         return path;
       }
-      return edgeCost(next).add(worstPath(next, end));
+      return edgeCost(next).add(shortestPath(next, end, shortestPathComparator));
     }
 
     private PathInfo edgeCost(AutomatonState state) {
       switch (state.incomingTransitionType()) {
         case EPSILON:
-          return new PathInfo(0, 1);
+          // the java implementation does not have sequence tree so we consider zero cost
+          return new PathInfo(0, state instanceof SequenceTree ? 0 : 1);
         case CHARACTER:
           return new PathInfo(1, 1);
         case BACK_REFERENCE:
-          // TODO: Use cached length of capturing group instead of 1 for consumed characters
-          return new PathInfo(1, 1);
+          return backReferenceCost((BackReferenceTree) state);
         default:
           throw new IllegalStateException("Lookaround should have been skipped");
       }
+    }
+
+    private PathInfo backReferenceCost(BackReferenceTree backReference) {
+      Integer consumedCharacters = 0;
+      CapturingGroupTree group = backReference.group();
+      if (group != null) {
+        consumedCharacters = consumedCharactersByCapturingGroupCache.get(group);
+        if (consumedCharacters == null) {
+          // prevent reentrancy while we are computing the value
+          consumedCharactersByCapturingGroupCache.put(group, 1);
+          Comparator<PathInfo> pathLengthComparator = Comparator.comparingInt(p -> p.numberOfConsumedCharacters);
+          PathInfo pathInfo = shortestPath(group.getElement(), group.getElement().continuation(), pathLengthComparator);
+          consumedCharacters = pathInfo.numberOfConsumedCharacters;
+          consumedCharactersByCapturingGroupCache.put(group, consumedCharacters);
+        }
+      }
+      // Referencing a capturing group does not increase the stack size as parsing the group would just retrieve a saved string
+      return new PathInfo(consumedCharacters, 1);
     }
 
     /**
      * Find the shortest path from the beginning to the end of a nested construct, such as a group, repetition or
      * disjunction, and append it to the given path
      */
-    private PathInfo worstInnerPath(RegexTree tree) {
+    private PathInfo shortestInnerPath(RegexTree tree, Comparator<PathInfo> shortestPathComparator) {
       switch (tree.kind()) {
         case REPETITION:
           RepetitionTree repetition = (RepetitionTree) tree;
@@ -196,11 +221,11 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
           }
           int repetitions = repetition.getQuantifier().getMinimumRepetitions();
           RegexTree element = repetition.getElement();
-          return edgeCost(element).add(worstPath(element, repetition.continuation())).multiply(repetitions);
+          return edgeCost(element).add(shortestPath(element, repetition.continuation(), shortestPathComparator)).multiply(repetitions);
         case DISJUNCTION:
           return ((DisjunctionTree) tree).getAlternatives().stream()
-            .map(alt -> edgeCost(alt).add(worstInnerPath(alt)))
-            .max(Comparator.comparing(PathInfo::stackConsumptionFactor))
+            .map(alt -> edgeCost(alt).add(shortestInnerPath(alt, shortestPathComparator)))
+            .min(shortestPathComparator)
             .get();
         case SEQUENCE:
           List<RegexTree> items = ((SequenceTree) tree).getItems();
@@ -208,11 +233,11 @@ public class RegexStackOverflowCheck extends AbstractRegexCheck {
             return new PathInfo(0, 0);
           }
           RegexTree first = items.get(0);
-          return edgeCost(first).add(worstPath(first, tree.continuation()));
+          return edgeCost(first).add(shortestPath(first, tree.continuation(), shortestPathComparator));
         case NON_CAPTURING_GROUP:
         case CAPTURING_GROUP:
           return Optional.ofNullable(((GroupTree) tree).getElement())
-            .map(groupElement -> edgeCost(groupElement).add(worstInnerPath(groupElement)))
+            .map(groupElement -> edgeCost(groupElement).add(shortestInnerPath(groupElement, shortestPathComparator)))
             .orElse(new PathInfo(0, 0));
         default:
           return new PathInfo(0, 0);

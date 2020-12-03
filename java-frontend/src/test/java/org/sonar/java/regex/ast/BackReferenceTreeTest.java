@@ -19,6 +19,7 @@
  */
 package org.sonar.java.regex.ast;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +51,38 @@ class BackReferenceTreeTest {
     assertThat(seq2.getItems()).hasSize(2);
     assertThat(seq2.getItems().get(0)).isInstanceOf(BackReferenceTree.class);
     assertThat(seq2.getItems().get(1)).isInstanceOf(PlainCharacterTree.class);
+  }
+
+  @Test
+  void backReferenceNumericGroup() {
+    RegexTree regex = assertSuccessfulParse("(a)(b)\\\\k<foo>\\\\1\\\\2\\\\3");
+    assertThat(regex.is(RegexTree.Kind.SEQUENCE)).isTrue();
+    List<RegexTree> items = ((SequenceTree) regex).getItems();
+    assertThat(items).hasSize(6);
+    assertThat(items.get(0)).isInstanceOf(CapturingGroupTree.class);
+    assertThat(items.get(1)).isInstanceOf(CapturingGroupTree.class);
+    CapturingGroupTree capturingGroup1 = (CapturingGroupTree) items.get(0);
+    CapturingGroupTree capturingGroup2 = (CapturingGroupTree) items.get(1);
+
+    assertThat(((BackReferenceTree)items.get(2)).group()).isNull();
+    assertThat(((BackReferenceTree)items.get(3)).group()).isEqualTo(capturingGroup1);
+    assertThat(((BackReferenceTree)items.get(4)).group()).isEqualTo(capturingGroup2);
+    assertThat(((BackReferenceTree)items.get(5)).group()).isNull();
+  }
+
+  @Test
+  void backReferenceNameGroup() {
+    RegexTree regex = assertSuccessfulParse("(?<foo>a)\\\\k<foo>\\\\k<bar>\\\\1\\\\2");
+    assertThat(regex.is(RegexTree.Kind.SEQUENCE)).isTrue();
+    List<RegexTree> items = ((SequenceTree) regex).getItems();
+    assertThat(items).hasSize(5);
+    assertThat(items.get(0)).isInstanceOf(CapturingGroupTree.class);
+    CapturingGroupTree capturingGroup = (CapturingGroupTree) items.get(0);
+
+    assertThat(((BackReferenceTree)items.get(1)).group()).isEqualTo(capturingGroup);
+    assertThat(((BackReferenceTree)items.get(2)).group()).isNull();
+    assertThat(((BackReferenceTree)items.get(3)).group()).isEqualTo(capturingGroup);
+    assertThat(((BackReferenceTree)items.get(4)).group()).isNull();
   }
 
   @Test
