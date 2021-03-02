@@ -148,13 +148,26 @@ public class RegexTreeHelper {
    * If both are set, it means either one can be the case.
    */
   public static boolean supersetOf(SubAutomaton auto1, SubAutomaton auto2, boolean defaultAnswer) {
-    return  supersetOf(auto1, auto2, defaultAnswer, new OrderedStatePairCache<>());
+    boolean b = supersetOf(auto1, auto2, defaultAnswer, new OrderedStatePairCache<>());
+    return b;
   }
 
   private static boolean supersetOf(SubAutomaton auto1, SubAutomaton auto2, boolean defaultAnswer, OrderedStatePairCache<Boolean> cache) {
-    return computeIfAbsentFromCache(auto1, auto2, defaultAnswer, cache,
-      () -> auto1.anySuccessorMatch(successor -> supersetOf(successor, auto2, defaultAnswer, cache), false),
-      () -> auto2.allSuccessorMatch(successor -> supersetOf(auto1, successor, defaultAnswer, cache), false),
+    boolean ans = computeIfAbsentFromCache(auto1, auto2, defaultAnswer, cache,
+      () -> {
+        boolean b = auto1.anySuccessorMatch(successor -> {
+          boolean b1 = supersetOf(successor, auto2, defaultAnswer, cache);
+          return b1;
+        }, false);
+        return b;
+      },
+      () -> {
+        boolean b = auto2.allSuccessorMatch(successor -> {
+          boolean b1 = supersetOf(auto1, successor, defaultAnswer, cache);
+          return b1;
+        }, false);
+        return b;
+      },
       () -> {
         SimplifiedRegexCharacterClass characterClass1 = SimplifiedRegexCharacterClass.of(auto1.start);
         SimplifiedRegexCharacterClass characterClass2 = SimplifiedRegexCharacterClass.of(auto2.start);
@@ -165,6 +178,7 @@ public class RegexTreeHelper {
         }
         return answer;
       });
+    return ans;
   }
 
   private static boolean hasNotSupportedTransitionType(SubAutomaton auto) {

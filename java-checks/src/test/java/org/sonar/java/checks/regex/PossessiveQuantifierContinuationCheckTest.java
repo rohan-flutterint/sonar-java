@@ -34,4 +34,12 @@ class PossessiveQuantifierContinuationCheckTest {
       .verifyIssues();
   }
 
+  @Test
+  void test2() {
+    JavaCheckVerifier.newVerifier()
+      .onFile(testSourcesPath("checks/regex/PossessiveQuantifierContinuationCheck2.java"))
+      .withCheck(new PossessiveQuantifierContinuationCheck())
+      .verifyIssues();
+  }
+
 }
