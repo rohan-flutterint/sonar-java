@@ -58,6 +58,7 @@ build_task:
     WS_PROJECTNAME: SonarJava
     WS_RESOLVEALLDEPENDENCIES: false
     WS_MAVEN_RESOLVEDEPENDENCIES: true
+    WS_FILESYSTEMSCAN: false
     WS_EXCLUDES: "**/*sources.jar **/*javadoc.jar"
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
