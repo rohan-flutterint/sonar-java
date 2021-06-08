@@ -81,6 +81,7 @@ ws_scan_task:
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   whitesource_script:
+    - echo ${PROJECT_VERSION}
     - ./get_ws_user_agent.sh
     - java -jar wss-unified-agent.jar
 
