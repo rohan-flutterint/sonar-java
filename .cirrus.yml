@@ -103,6 +103,7 @@ qa_os_win_task:
   cleanup_before_cache_script: cleanup_maven_repository
 
 plugin_qa_task:
+  only_if: $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*"
   depends_on:
     - build
   <<: *ONLY_SONARSOURCE_QA
