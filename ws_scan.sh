@@ -4,7 +4,7 @@ readonly URL="https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar"
 readonly UNIFIED_AGENT_JAR="wss-unified-agent.jar"
 readonly MD5_CHECKSUM="8E51FDC3C9EF7FCAE250737BD226C8F6"
 
-main() {
+get_ws_agent() {
   if [[ ! -f "${UNIFIED_AGENT_JAR}" ]]; then
     curl \
       --location \
@@ -31,4 +31,12 @@ main() {
   fi
 }
 
-main
+scan() {
+  export WS_PRODUCTNAME=$(maven_expression "project.name")
+  export WS_PROJECTNAME="${WS_PRODUCTNAME} ${PROJECT_VERSION%.*}"
+  echo "${WS_PRODUCTNAME} - ${WS_PROJECTNAME}"
+  java -jar wss-unified-agent.jar
+}
+
+get_ws_agent
+scan
