@@ -35,12 +35,7 @@ scan() {
   export WS_PRODUCTNAME=$(maven_expression "project.name")
   export WS_PROJECTNAME="${WS_PRODUCTNAME} ${PROJECT_VERSION%.*}"
   echo "${WS_PRODUCTNAME} - ${WS_PROJECTNAME}"
-  local jar_path="${CIRRUS_WORKING_DIR}/sonar-java-plugin/target/sonar-java-plugin-7.1.0-SNAPSHOT.jar"
-  echo "${CIRRUS_WORKING_DIR}"
-  ls
-  echo "${jar_path}"
-  mvn clean install
-  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${jar_path}" -d "${CIRRUS_WORKING_DIR}"
+  java -jar wss-unified-agent.jar
 }
 
 get_ws_agent
