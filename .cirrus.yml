@@ -76,7 +76,7 @@ ws_scan_task:
     WS_RESOLVEALLDEPENDENCIES: false
     WS_MAVEN_RESOLVEDEPENDENCIES: true
     WS_FILESYSTEMSCAN: false
-    WS_MAVEN_AGGREGATEMODULES: false
+    WS_MAVEN_AGGREGATEMODULES: true
     WS_EXCLUDES: "**/*sources.jar **/*javadoc.jar **/its/sources/**"
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
