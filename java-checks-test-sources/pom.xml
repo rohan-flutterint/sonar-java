@@ -781,6 +781,12 @@
       <version>5.2.7.RELEASE</version>
       <scope>provided</scope>
     </dependency>
+    <!-- CVE-2021-21429 -->
+    <dependency>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator</artifactId>
+        <version>5.0.1</version>
+      </dependency>
   </dependencies>
 
   <profiles>
