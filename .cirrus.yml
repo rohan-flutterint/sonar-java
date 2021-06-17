@@ -66,8 +66,6 @@ ws_scan_task:
     image: gcr.io/language-team/base-jdk16:latest
     cpu: 2
     memory: 2G
-  depends_on:
-    - build
   env:
     WS_APIKEY: ENCRYPTED[cda363e6bcac3edd4c259dc05b3570e00152ad50f9ad3ec3cab72d57cda318a0d5472e37c656c3566c2cb8c752d2f5a0]
     WS_WSS_URL: https://saas-eu.whitesourcesoftware.com/agent
