@@ -67,17 +67,20 @@ ws_scan_task:
     cpu: 2
     memory: 2G
   env:
+    SIGN_KEY: ENCRYPTED[!cc216dfe592f79db8006f2a591f8f98b40aa2b078e92025623594976fd32f6864c1e6b6ba74b50647f608e2418e6c336!]
+    PGP_PASSPHRASE: ENCRYPTED[!314a8fc344f45e462dd5e8dccd741d7562283a825e78ebca27d4ae9db8e65ce618e7f6aece386b2782a5abe5171467bd!]
+    # analysis on next
+    SONAR_TOKEN: ENCRYPTED[!b6fd814826c51e64ee61b0b6f3ae621551f6413383f7170f73580e2e141ac78c4b134b506f6288c74faa0dd564c05a29!]
+    SONAR_HOST_URL: https://next.sonarqube.com/sonarqube
+    #allow deployment of pull request artifacts to repox
+    DEPLOY_PULL_REQUEST: true
     WS_APIKEY: ENCRYPTED[cda363e6bcac3edd4c259dc05b3570e00152ad50f9ad3ec3cab72d57cda318a0d5472e37c656c3566c2cb8c752d2f5a0]
-    WS_WSS_URL: https://saas-eu.whitesourcesoftware.com/agent
-    WS_PRODUCTNAME: SonarJava
-    WS_PROJECTNAME: SonarJava
-    WS_RESOLVEALLDEPENDENCIES: false
-    WS_MAVEN_RESOLVEDEPENDENCIES: true
-    WS_FILESYSTEMSCAN: false
-    WS_MAVEN_AGGREGATEMODULES: true
-    WS_EXCLUDES: "**/*sources.jar **/*javadoc.jar **/its/sources/**"
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
+  build_script:
+    - source cirrus-env BUILD
+    - regular_mvn_build_deploy_analyze
+    - ./check-license-compliance.sh
   whitesource_script:
     - source cirrus-env QA
     - source set_maven_build_version $BUILD_NUMBER
