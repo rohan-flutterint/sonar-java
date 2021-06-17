@@ -53,6 +53,10 @@ get_project_version() {
   fi
 }
 
+build() {
+  mvn clean install
+}
+
 scan() {
   export WS_PRODUCTNAME=$(get_product_name)
   if [[ -z "${PROJECT_VERSION}" ]]; then
@@ -63,5 +67,6 @@ scan() {
   java -jar wss-unified-agent.jar -c whitesource.properties -appPath "sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d .
 }
 
+build
 get_ws_agent
 scan
