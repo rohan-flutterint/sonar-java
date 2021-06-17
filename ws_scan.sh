@@ -60,7 +60,7 @@ scan() {
   fi
   export WS_PROJECTNAME="${WS_PRODUCTNAME} ${PROJECT_VERSION%.*}"
   echo "${WS_PRODUCTNAME} - ${WS_PROJECTNAME}"
-  java -jar wss-unified-agent.jar
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d .
 }
 
 get_ws_agent
