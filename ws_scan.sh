@@ -31,8 +31,33 @@ get_ws_agent() {
   fi
 }
 
+local_maven_expression() {
+  mvn -q -Dexec.executable="echo" -Dexec.args="\${${1}}" --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec
+}
+
+get_product_name() {
+  local property="project.name"
+  if which maven_expression >&2 2>/dev/null; then
+    maven_expression "${property}"
+  else
+    local_maven_expression "${property}"
+  fi
+}
+
+get_project_version() {
+  local property="project.version"
+  if which maven_expression >&2 2>/dev/null; then
+    maven_expression "${property}"
+  else
+    local_maven_expression "${property}"
+  fi
+}
+
 scan() {
-  export WS_PRODUCTNAME=$(maven_expression "project.name")
+  export WS_PRODUCTNAME=$(get_product_name)
+  if [[ -z "${PROJECT_VERSION}" ]]; then
+    PROJECT_VERSION=$(get_project_version)
+  fi
   export WS_PROJECTNAME="${WS_PRODUCTNAME} ${PROJECT_VERSION%.*}"
   echo "${WS_PRODUCTNAME} - ${WS_PROJECTNAME}"
   java -jar wss-unified-agent.jar
