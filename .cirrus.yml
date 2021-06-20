@@ -61,9 +61,11 @@ build_task:
   cleanup_before_cache_script: cleanup_maven_repository
 
 ws_scan_task:
+  depends_on:
+    - build
+  <<: *ONLY_SONARSOURCE_QA
   gke_container:
     <<: *CONTAINER_DEFINITION
-    image: gcr.io/language-team/base-jdk16:latest
     cpu: 2
     memory: 2G
   env:
@@ -82,6 +84,7 @@ ws_scan_task:
     - source cirrus-env QA
     - source set_maven_build_version $BUILD_NUMBER
     - ./ws_scan.sh
+  cleanup_before_cache_script: cleanup_maven_repository
 
 qa_os_win_task:
   depends_on:

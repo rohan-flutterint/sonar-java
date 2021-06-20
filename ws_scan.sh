@@ -85,10 +85,6 @@ get_project_version() {
   fi
 }
 
-build() {
-  mvn clean install
-}
-
 scan() {
   export WS_PRODUCTNAME=$(get_product_name)
   if [[ -z "${PROJECT_VERSION}" ]]; then
@@ -100,10 +96,9 @@ scan() {
     java -jar "${UNIFIED_AGENT_JAR}" -c whitesource.properties -d . -analyzeMultiModule "${MODULE_SETUP_FILE}"
   fi
   java -jar "${MODULE_ANALYZER_JAR}" -xModulePath "${MODULE_SETUP_FILE}" -fsaJarPath "${UNIFIED_AGENT_JAR}" -c whitesource.properties -statusDisplay dynamic
-  #java -jar wss-unified-agent.jar -c whitesource.properties -appPath "sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d sonar-java-plugin
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d sonar-java-plugin
 }
 
-build
 get_wss_agent
 get_multi_module_agent
 scan
