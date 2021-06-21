@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 readonly UNIFIED_AGENT_JAR="wss-unified-agent.jar"
-readonly UNIFIED_AGENT_JAR_MD5_CHECKSUM="8E51FDC3C9EF7FCAE250737BD226C8F6"
+readonly UNIFIED_AGENT_JAR_MD5_CHECKSUM="F2EB843816A572904954052756EB66E7"
 readonly UNIFIED_AGENT_JAR_URL="https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar"
 
 readonly MODULE_ANALYZER_JAR="xModuleAnalyzer-21.4.1.jar"
