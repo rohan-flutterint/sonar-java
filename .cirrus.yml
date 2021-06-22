@@ -41,7 +41,7 @@ only_sonarsource_qa: &ONLY_SONARSOURCE_QA
 build_task:
   gke_container:
     <<: *CONTAINER_DEFINITION
-    image: gcr.io/language-team/base-jdk16:latest
+    image: gcr.io/language-team/base-jdk16:PR_40
     cpu: 2
     memory: 2G
   env:
@@ -110,7 +110,7 @@ sanity_task:
   <<: *ONLY_SONARSOURCE_QA
   gke_container:
     <<: *CONTAINER_DEFINITION
-    image: gcr.io/language-team/base-jdk16:latest
+    image: gcr.io/language-team/base-jdk16:PR_40
     cpu: 4
     memory: 8G
   maven_cache:
