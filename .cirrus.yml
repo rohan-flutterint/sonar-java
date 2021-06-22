@@ -55,6 +55,7 @@ build_task:
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   build_script:
+    - sleep 3600
     - source cirrus-env BUILD
     - regular_mvn_build_deploy_analyze
     - ./check-license-compliance.sh
