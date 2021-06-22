@@ -1,15 +1,12 @@
 #! /usr/bin/env bash
 
+readonly SCRIPT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 readonly UNIFIED_AGENT_JAR="wss-unified-agent.jar"
-readonly UNIFIED_AGENT_JAR_MD5_CHECKSUM="F2EB843816A572904954052756EB66E7"
+readonly UNIFIED_AGENT_JAR_MD5_CHECKSUM="F2EB843816A572904954052756EB66E7" # MD5 hash for version 21.6.1
 readonly UNIFIED_AGENT_JAR_URL="https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar"
 
-readonly MODULE_ANALYZER_JAR="xModuleAnalyzer-21.4.1.jar"
-readonly MODULE_ANALYZER_JAR_URL="https://unified-agent.s3.amazonaws.com/xModuleAnalyzer/xModuleAnalyzer-21.4.1.jar"
-readonly MODULE_ANALYZER_JAR_MD5_CHECKSUM="2944089B0402957132B3BCDB8EF4E5DB"
-readonly MODULE_SETUP_FILE="setup.txt"
-
-get_wss_agent() {
+get_unified_agent() {
   if [[ ! -f "${UNIFIED_AGENT_JAR}" ]]; then
     curl \
       --location \
@@ -25,39 +22,14 @@ get_wss_agent() {
   # Verify JAR checksum
   local checksum="$(md5sum ${UNIFIED_AGENT_JAR} | cut --delimiter=" " --fields=1 | awk ' { print toupper($0) }')"
   if [[ "${checksum}" != "${UNIFIED_AGENT_JAR_MD5_CHECKSUM}" ]]; then
-    echo -e "MD5 checksum mismatch.\nexpected: ${UNIFIED_AGENT_JAR_MD5_CHECKSUM}\ncomputed: ${checksum}" >&2
+    echo "MD5 checksum mismatch." >&2
+    echo "expected: ${UNIFIED_AGENT_JAR_MD5_CHECKSUM}" >&2
+    echo "computed: ${checksum}" >&2
     exit 2
   fi
 
   # Verify JAR signature
   if ! jarsigner -verify "${UNIFIED_AGENT_JAR}"; then
-    echo "Could not verify jar signature" >&2
-    exit 3
-  fi
-}
-
-get_multi_module_agent() {
-  if [[ ! -f "${MODULE_ANALYZER_JAR}" ]]; then
-    curl \
-      --location \
-      --remote-name \
-      --remote-header-name \
-      "${MODULE_ANALYZER_JAR_URL}"
-  fi
-  if [[ ! -f "${MODULE_ANALYZER_JAR}" ]]; then
-    echo "Could not find downloaded Unified Agent" >&2
-    exit 1
-  fi
-
-  # Verify JAR checksum
-  local checksum="$(md5sum ${MODULE_ANALYZER_JAR} | cut --delimiter=" " --fields=1 | awk ' { print toupper($0) }')"
-  if [[ "${checksum}" != "${MODULE_ANALYZER_JAR_MD5_CHECKSUM}" ]]; then
-    echo -e "MD5 checksum mismatch.\nexpected: ${MODULE_ANALYZER_JAR_MD5_CHECKSUM}\ncomputed: ${checksum}" >&2
-    exit 2
-  fi
-
-  # Verify JAR signature
-  if ! jarsigner -verify "${MODULE_ANALYZER_JAR}"; then
     echo "Could not verify jar signature" >&2
     exit 3
   fi
@@ -92,13 +64,20 @@ scan() {
   fi
   export WS_PROJECTNAME="${WS_PRODUCTNAME} ${PROJECT_VERSION%.*}"
   echo "${WS_PRODUCTNAME} - ${WS_PROJECTNAME}"
-  if [[ ! -f "${MODULE_SETUP_FILE}" ]]; then
-    java -jar "${UNIFIED_AGENT_JAR}" -c whitesource.properties -d . -analyzeMultiModule "${MODULE_SETUP_FILE}"
-  fi
-  java -jar "${MODULE_ANALYZER_JAR}" -xModulePath "${MODULE_SETUP_FILE}" -fsaJarPath "${UNIFIED_AGENT_JAR}" -c whitesource.properties -statusDisplay dynamic
-  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d sonar-java-plugin
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/docs/java-custom-rules-example/target/java-custom-rules-example-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/docs/java-custom-rules-example"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/external-reports/target/external-reports-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/external-reports"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/its/plugin/tests/target/it-java-plugin-tests-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/its/plugin/tests"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/its/plugin/plugins/java-extension-plugin/target/java-extension-plugin-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/its/plugin/plugins/java-extension-plugin"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/its/ruling/target/it-java-ruling-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/its/ruling"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-checks/target/java-checks-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-checks"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-checks-testkit/target/java-checks-testkit-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-checks-testkit"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-frontend/target/java-frontend-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-frontend"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-jsp/target/java-jsp-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-jsp"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-surefire/target/java-surefire-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-surefire"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/java-symbolic-execution/target/java-symbolic-execution-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/java-symbolic-execution"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/jdt/target/jdt-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/jdt"
+  java -jar wss-unified-agent.jar -c whitesource.properties -appPath "${SCRIPT_DIRECTORY}/sonar-java-plugin/target/sonar-java-plugin-${PROJECT_VERSION}.jar" -d "${SCRIPT_DIRECTORY}/sonar-java-plugin"
 }
 
-get_wss_agent
-get_multi_module_agent
+get_unified_agent
 scan
