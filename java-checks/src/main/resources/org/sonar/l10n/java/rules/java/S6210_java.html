@@ -1,0 +1,40 @@
+<p>In records, introduced in Java 16, there are 2 ways to write a custom constructor: canonical and compact.</p>
+<p>A canonical constructor is an ordinary constructor with arguments for all private fields. The default implementation just provides initialization
+for all private fields and there is no need to write it manually. You might want to write it yourself when you need to customize the constructor
+logic.</p>
+<p>A compact constructor doesn’t have parameters defined explicitly, parentheses are omitted and access to private fields is not possible (even via
+<code>this</code>). The compact constructor has access to the constructor’s arguments and its body is executed right before the field initialization.
+It’s a perfect place to provide validation.</p>
+<p>This rule reports an issue when a canonical constructor can be easily replaced by a compact version when these requirements are met:</p>
+<ul>
+  <li> the last statements are trivial field initialization </li>
+  <li> besides this, there is no access to private members through <code>this</code> </li>
+  <li> there are other statements in the constructor (case covered by {rule:java:S6207}: redundant constructors in records) </li>
+</ul>
+<h2>Noncompliant Code Example</h2>
+<pre>
+record Person(String name, int age) {
+&nbsp; Person(String name, int age) { // Noncompliant
+    if (age &lt; 0) {
+      throw new IllegalArgumentException("Negative age");
+    }
+&nbsp; &nbsp; this.name = name;
+&nbsp; &nbsp; this.age = age;
+&nbsp; }
+}
+</pre>
+<h2>Compliant Solution</h2>
+<pre>
+record Person(String name, int age) {
+&nbsp; Person { // Compliant
+    if (age &lt; 0) {
+      throw new IllegalArgumentException("Negative age");
+    }
+&nbsp; }
+}
+</pre>
+<h2>See</h2>
+<ul>
+  <li> <a href="https://docs.oracle.com/javase/specs/jls/se16/html/jls-8.html#jls-8.10">Records specification</a> </li>
+</ul>
+
