@@ -25,9 +25,12 @@ public class ShouldBeACompactConstructorCheck {
       this.name = name.trim().toLowerCase(Locale.ROOT);
       this.age = age;
     }
+  }
 
-    public String name() {
-      return this.name.toLowerCase(Locale.ROOT);
+  record OnlyTrivialAssignments(String name, int age) {
+    OnlyTrivialAssignments(String name, int age) { // Compliant because already reported by S6207
+      this.name = name;
+      this.age = age;
     }
   }
 

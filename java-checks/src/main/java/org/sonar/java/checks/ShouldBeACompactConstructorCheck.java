@@ -53,7 +53,13 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
     if (!canonicalConstructor.isPresent()) {
       return;
     }
-    List<AssignmentExpressionTree> assignments = extractLastAssignments(canonicalConstructor.get());
+
+    List<StatementTree> statements = canonicalConstructor.get().block().body();
+    List<AssignmentExpressionTree> assignments = extractLastAssignments(statements);
+    if (statements.size() == assignments.size()) {
+      return;
+    }
+
     List<Symbol.VariableSymbol> components = someRecord.recordComponents().stream()
       .map(component -> (Symbol.VariableSymbol) component.symbol())
       .collect(Collectors.toList());
@@ -69,8 +75,7 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
     }
   }
 
-  private static List<AssignmentExpressionTree> extractLastAssignments(MethodTree method) {
-    List<StatementTree> statements = method.block().body();
+  private static List<AssignmentExpressionTree> extractLastAssignments(List<StatementTree> statements) {
     List<AssignmentExpressionTree> assignments = new ArrayList<>();
     for (int i = statements.size() - 1; i >= 0; i--) {
       StatementTree statement = statements.get(i);
