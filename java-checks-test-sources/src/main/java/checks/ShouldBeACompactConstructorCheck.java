@@ -3,8 +3,8 @@ package checks;
 import java.util.Locale;
 
 public class ShouldBeACompactConstructorCheck {
-  record TrivialAssignmentAtTheEnd(String name, int age) {
-    TrivialAssignmentAtTheEnd(String name, int age) { // Noncompliant
+  record OnlyTrivialAssignmentsAtTheEnd(String name, int age) {
+    OnlyTrivialAssignmentsAtTheEnd(String name, int age) { // Noncompliant [[sc=5;ec=35]] {{Replace this usage of a 'canonical' constructor with a more concise 'compact' version.}}
       if (age < 0) {
         throw new IllegalArgumentException("Negative age");
       }
@@ -17,8 +17,8 @@ public class ShouldBeACompactConstructorCheck {
     }
   }
 
-  record NonTrivialAssignment(String name, int age) {
-    NonTrivialAssignment(String name, int age) { // Compliant
+  record NonTrivialAssignmentsAtheEnd(String name, int age) {
+    NonTrivialAssignmentsAtheEnd(String name, int age) { // Compliant
       if (age < 0) {
         throw new IllegalArgumentException("Negative age");
       }

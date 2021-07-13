@@ -65,7 +65,7 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
       isTrivialAssignment(assignment, components, parameters).ifPresent(componentsInTrivialAssignment::add);
     }
     if (componentsInTrivialAssignment.containsAll(components)) {
-      reportIssue(canonicalConstructor.get(), "BOOM!");
+      reportIssue(canonicalConstructor.get().simpleName(), "Replace this usage of a 'canonical' constructor with a more concise 'compact' version.");
     }
   }
 
