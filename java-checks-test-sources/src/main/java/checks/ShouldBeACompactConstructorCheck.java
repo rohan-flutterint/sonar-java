@@ -17,6 +17,20 @@ public class ShouldBeACompactConstructorCheck {
     }
   }
 
+  record TrivialAssignmentsSplit(String name, int age) {
+    TrivialAssignmentsSplit(String name, int age) { // Compliant
+      this.name = name;
+      if (age < 0) {
+        throw new IllegalArgumentException("Negative age");
+      }
+      this.age = age;
+    }
+
+    public String name() {
+      return this.name.toLowerCase(Locale.ROOT);
+    }
+  }
+
   record NonTrivialAssignmentsAtheEnd(String name, int age) {
     NonTrivialAssignmentsAtheEnd(String name, int age) { // Compliant
       if (age < 0) {
