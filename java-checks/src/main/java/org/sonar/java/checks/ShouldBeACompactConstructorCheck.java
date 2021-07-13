@@ -19,17 +19,24 @@
  */
 package org.sonar.java.checks;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.sonar.check.Rule;
 import org.sonar.java.checks.helpers.RecordUtils;
-import org.sonar.plugins.java.api.IssuableSubscriptionVisitor;
+import org.sonar.plugins.java.api.semantic.Symbol;
+import org.sonar.plugins.java.api.tree.AssignmentExpressionTree;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
+import org.sonar.plugins.java.api.tree.StatementTree;
 import org.sonar.plugins.java.api.tree.Tree;
 
 @Rule(key = "S6210")
-public class ShouldBeACompactConstructorCheck extends IssuableSubscriptionVisitor {
+public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
   @Override
   public List<Tree.Kind> nodesToVisit() {
     return Collections.singletonList(Tree.Kind.RECORD);
@@ -38,8 +45,41 @@ public class ShouldBeACompactConstructorCheck extends IssuableSubscriptionVisito
   @Override
   public void visitNode(Tree tree) {
     ClassTree someRecord = (ClassTree) tree;
-    someRecord.members().stream()
-      .filter(member -> member.is(Tree.Kind.CONSTRUCTOR) && RecordUtils.isACanonicalConstructor((MethodTree) member))
-      .forEach(member -> reportIssue(member, "BOOM"));
+    Optional<MethodTree> canonicalConstructor = someRecord.members().stream()
+      .filter(member -> member.is(Tree.Kind.CONSTRUCTOR))
+      .map(MethodTree.class::cast)
+      .filter(RecordUtils::isACanonicalConstructor)
+      .findFirst();
+    if (!canonicalConstructor.isPresent()) {
+      return;
+    }
+    List<AssignmentExpressionTree> assignments = extractLastAssignments(canonicalConstructor.get());
+    List<Symbol.VariableSymbol> components = someRecord.recordComponents().stream()
+      .map(component -> (Symbol.VariableSymbol) component.symbol())
+      .collect(Collectors.toList());
+    List<Symbol.VariableSymbol> parameters = canonicalConstructor.get().parameters().stream()
+      .map(parameter -> (Symbol.VariableSymbol) parameter.symbol())
+      .collect(Collectors.toList());
+    Set<Symbol.VariableSymbol> componentsInTrivialAssignment = new HashSet<>();
+    for (AssignmentExpressionTree assignment : assignments) {
+      isTrivialAssignment(assignment, components, parameters).ifPresent(componentsInTrivialAssignment::add);
+    }
+    if (componentsInTrivialAssignment.containsAll(components)) {
+      reportIssue(canonicalConstructor.get(), "BOOM!");
+    }
+  }
+
+  private static List<AssignmentExpressionTree> extractLastAssignments(MethodTree method) {
+    List<StatementTree> statements = method.block().body();
+    List<AssignmentExpressionTree> assignments = new ArrayList<>();
+    for (int i = statements.size() - 1; i >= 0; i--) {
+      StatementTree statement = statements.get(i);
+      Optional<AssignmentExpressionTree> assignment = extractAssignment(statement);
+      if (!assignment.isPresent()) {
+        break;
+      }
+      assignments.add(assignment.get());
+    }
+    return assignments;
   }
 }

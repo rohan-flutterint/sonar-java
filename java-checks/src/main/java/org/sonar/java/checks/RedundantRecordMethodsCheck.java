@@ -41,7 +41,7 @@ import org.sonar.plugins.java.api.tree.StatementTree;
 import org.sonar.plugins.java.api.tree.Tree;
 
 @Rule(key = "S6207")
-public class RedundantRecordMethodsCheck extends IssuableSubscriptionVisitor {
+public class RedundantRecordMethodsCheck extends AbstractRecordChecker {
   @Override
   public List<Tree.Kind> nodesToVisit() {
     return Collections.singletonList(Tree.Kind.RECORD);
@@ -117,7 +117,7 @@ public class RedundantRecordMethodsCheck extends IssuableSubscriptionVisitor {
     List<AssignmentExpressionTree> assignments = extractAssignments(constructor.block().body());
     Set<Symbol> componentsAssignedInConstructor = new HashSet<>();
     for (AssignmentExpressionTree assignment : assignments) {
-      assignsParameterToComponent(assignment, components, parameters).ifPresent(componentsAssignedInConstructor::add);
+      isTrivialAssignment(assignment, components, parameters).ifPresent(componentsAssignedInConstructor::add);
     }
     return componentsAssignedInConstructor.containsAll(components);
   }
@@ -128,49 +128,5 @@ public class RedundantRecordMethodsCheck extends IssuableSubscriptionVisitor {
       .filter(Optional::isPresent)
       .map(Optional::get)
       .collect(Collectors.toList());
-  }
-
-  private static Optional<AssignmentExpressionTree> extractAssignment(StatementTree statement) {
-    if (!statement.is(Tree.Kind.EXPRESSION_STATEMENT)) {
-      return Optional.empty();
-    }
-    ExpressionStatementTree initialStatement = (ExpressionStatementTree) statement;
-    if (!initialStatement.expression().is(Tree.Kind.ASSIGNMENT)) {
-      return Optional.empty();
-    }
-    return Optional.of((AssignmentExpressionTree) initialStatement.expression());
-  }
-
-  /**
-   * Returns the symbol of a component used as the receiving end of the assignment if the matching parameter is used as the value.
-   * @param assignment The assignment statement
-   * @param components The components' symbols
-   * @param parameters The parameters' symbols
-   * @return Optional of the component's symbol receiving the matching parameter. Optional.empty() otherwise.
-   */
-  private static Optional<Symbol.VariableSymbol> assignsParameterToComponent(
-    AssignmentExpressionTree assignment,
-    List<Symbol.VariableSymbol> components,
-    List<Symbol.VariableSymbol> parameters) {
-    ExpressionTree leftHandSide = assignment.variable();
-    if (!leftHandSide.is(Tree.Kind.MEMBER_SELECT)) {
-      return Optional.empty();
-    }
-    Symbol variableSymbol = ((MemberSelectExpressionTree) leftHandSide).identifier().symbol();
-    Optional<Symbol.VariableSymbol> component = components.stream()
-      .filter(variableSymbol::equals)
-      .findFirst();
-    if (!component.isPresent()) {
-      return Optional.empty();
-    }
-    ExpressionTree rightHandSide = assignment.expression();
-    if (!rightHandSide.is(Tree.Kind.IDENTIFIER)) {
-      return Optional.empty();
-    }
-    Symbol valueSymbol = ((IdentifierTree) rightHandSide).symbol();
-    if (parameters.stream().anyMatch(valueSymbol::equals) && variableSymbol.name().equals(valueSymbol.name())) {
-      return component;
-    }
-    return Optional.empty();
   }
 }
