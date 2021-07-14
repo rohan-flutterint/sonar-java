@@ -3,6 +3,24 @@ package checks;
 import java.util.Locale;
 
 public class ShouldBeACompactConstructorCheck {
+  record AccessPrivateElements(String name, int age) {
+    private static final int DEFAULT = 42;
+
+    AccessPrivateElements(String name, int age) { // Compliant
+      String copy = this.name();
+      int value = this.compute();
+      if (age < 0) {
+        throw new IllegalArgumentException("Negative age");
+      }
+      this.name = name;
+      this.age = age;
+    }
+
+    private int compute() {
+      return 42;
+    }
+  }
+
   record OnlyTrivialAssignmentsAtTheEnd(String name, int age) {
     OnlyTrivialAssignmentsAtTheEnd(String name, int age) { // Noncompliant [[sc=5;ec=35]] {{Replace this usage of a 'canonical' constructor with a more concise 'compact' version.}}
       if (age < 0) {

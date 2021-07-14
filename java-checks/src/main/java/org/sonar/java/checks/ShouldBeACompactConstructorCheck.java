@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.sonar.check.Rule;
+import org.sonar.java.cfg.CFG;
+import org.sonar.java.cfg.LiveVariables;
 import org.sonar.java.checks.helpers.RecordUtils;
 import org.sonar.plugins.java.api.semantic.Symbol;
 import org.sonar.plugins.java.api.tree.AssignmentExpressionTree;
@@ -34,6 +36,7 @@ import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
 import org.sonar.plugins.java.api.tree.StatementTree;
 import org.sonar.plugins.java.api.tree.Tree;
+import org.sonar.plugins.java.api.tree.VariableTree;
 
 @Rule(key = "S6210")
 public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
@@ -54,6 +57,7 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
       return;
     }
 
+
     List<StatementTree> statements = canonicalConstructor.get().block().body();
     List<AssignmentExpressionTree> assignments = extractLastAssignments(statements);
     if (statements.size() == assignments.size()) {
@@ -70,6 +74,16 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
     for (AssignmentExpressionTree assignment : assignments) {
       isTrivialAssignment(assignment, components, parameters).ifPresent(componentsInTrivialAssignment::add);
     }
+
+    List<Symbol.VariableSymbol> fields = someRecord.members().stream()
+      .filter(member -> member.is(Tree.Kind.VARIABLE))
+      .map(field -> (Symbol.VariableSymbol) ((VariableTree) field).symbol())
+      .collect(Collectors.toList());
+
+    if (areComponentsOrFieldsAccessed(canonicalConstructor.get(), components, fields)) {
+      return;
+    }
+
     if (componentsInTrivialAssignment.containsAll(components)) {
       reportIssue(canonicalConstructor.get().simpleName(), "Replace this usage of a 'canonical' constructor with a more concise 'compact' version.");
     }
@@ -86,5 +100,15 @@ public class ShouldBeACompactConstructorCheck extends AbstractRecordChecker {
       assignments.add(assignment.get());
     }
     return assignments;
+  }
+
+  private static boolean areComponentsOrFieldsAccessed(MethodTree method, List<Symbol.VariableSymbol> components, List<Symbol.VariableSymbol> fields) {
+    CFG cfg = (CFG) method.cfg();
+    LiveVariables analysis = LiveVariables.analyzeWithFields(cfg);
+    Set<Symbol> variablesRead = analysis.getIn(cfg.entryBlock());
+    for (Symbol variable : variablesRead) {
+
+    }
+    return false;
   }
 }

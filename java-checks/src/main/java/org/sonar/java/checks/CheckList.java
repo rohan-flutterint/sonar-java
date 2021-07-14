@@ -556,6 +556,7 @@ public final class CheckList {
       ServletInstanceFieldCheck.class,
       ServletMethodsExceptionsThrownCheck.class,
       ShiftOnIntOrLongCheck.class,
+      ShouldBeACompactConstructorCheck.class,
       SillyBitOperationCheck.class,
       SillyEqualsCheck.class,
       SillyStringOperationsCheck.class,
