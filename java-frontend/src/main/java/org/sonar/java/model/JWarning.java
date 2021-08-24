@@ -40,7 +40,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.sonar.java.annotations.VisibleForTesting;
 import org.sonar.java.ast.visitors.SubscriptionVisitor;
 import org.sonar.java.collections.SetUtils;
-import org.sonar.plugins.java.api.tree.SyntaxToken;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.tree.Tree;
 
 public final class JWarning {
@@ -99,13 +99,13 @@ public final class JWarning {
     }
 
     private static Position startOf(Tree tree) {
-      SyntaxToken token = tree.firstToken();
-      return new Position(token.line(), token.column());
+      TextSpan textSpan = tree.firstToken().textSpan();
+      return new Position(textSpan.startLine, textSpan.startCharacter);
     }
 
     private static Position endOf(Tree tree) {
-      SyntaxToken token = tree.lastToken();
-      return new Position(token.line(), token.column() + token.text().length());
+      TextSpan textSpan = tree.lastToken().textSpan();
+      return new Position(textSpan.endLine, textSpan.endCharacter);
     }
 
     int line() {

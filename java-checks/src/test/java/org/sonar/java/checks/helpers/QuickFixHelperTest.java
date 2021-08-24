@@ -21,10 +21,14 @@ package org.sonar.java.checks.helpers;
 
 import org.junit.jupiter.api.Test;
 import org.sonar.java.model.InternalSyntaxToken;
+import org.sonar.plugins.java.api.JavaFileScannerContext;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.CompilationUnitTree;
+import org.sonar.plugins.java.api.tree.InferedTypeTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class QuickFixHelperTest {
 
@@ -67,6 +71,12 @@ class QuickFixHelperTest {
 
     // start of file
     assertThat(QuickFixHelper.previousToken(a.declarationKeyword())).isEqualTo(a.declarationKeyword());
+  }
+
+  @Test
+  void content_for_empty_token() {
+    String content = QuickFixHelper.contentForTree(new InferedTypeTree(), mock(JavaFileScannerContext.class));
+    assertThat(content).isEmpty();
   }
 
 }

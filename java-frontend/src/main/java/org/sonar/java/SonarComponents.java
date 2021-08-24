@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -76,8 +76,8 @@ public class SonarComponents {
   public static final String FAIL_ON_EXCEPTION_KEY = "sonar.internal.analysis.failFast";
   public static final String SONAR_BATCH_MODE_KEY = "sonar.java.internal.batchMode";
 
-  private static final Pattern LINE_BREAK_EXCLUDED_PATTERN = Pattern.compile("\r\n|[\n\r]");
-  private static final Pattern LINE_BREAK_INCLUDED_PATTERN = Pattern.compile("(?<=\r\n|[\n\r])");
+  // Do not use "\\R" to ignore \u000B\u000C\u0085\u2028\u2029
+  private static final Pattern EOL_PATTERN = Pattern.compile("\r\n|\n|\r");
   private static final Version SONARLINT_6_3 = Version.parse("6.3");
 
   private final FileLinesContextFactory fileLinesContextFactory;
@@ -312,14 +312,25 @@ public class SonarComponents {
   }
 
   private static List<String> fileLines(InputFile inputFile, boolean keepLineEndings) {
-    List<String> lines = new ArrayList<>();
-    try (Scanner scanner = new Scanner(inputFile.inputStream(), inputFile.charset().name())) {
-      scanner.useDelimiter(keepLineEndings ? LINE_BREAK_INCLUDED_PATTERN : LINE_BREAK_EXCLUDED_PATTERN);
-      while (scanner.hasNext()) {
-        lines.add(scanner.next());
-      }
+    try {
+      return fileLines(inputFile.contents(), keepLineEndings);
     } catch (IOException e) {
       throw new AnalysisException(String.format("Unable to read file '%s'", inputFile), e);
+    }
+  }
+
+  @VisibleForTesting
+  static List<String> fileLines(String content, boolean keepLineEndings) {
+    List<String> lines = new ArrayList<>();
+    Matcher matcher = EOL_PATTERN.matcher(content);
+    int pos = 0;
+    while (matcher.find()) {
+      int end = matcher.end();
+      lines.add(content.substring(pos, keepLineEndings ? end : matcher.start()));
+      pos = end;
+    }
+    if (pos == 0 || pos < content.length()) {
+      lines.add(content.substring(pos));
     }
     return lines;
   }

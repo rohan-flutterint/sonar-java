@@ -35,6 +35,7 @@ import org.sonar.java.ast.api.JavaKeyword;
 import org.sonar.java.ast.api.JavaRestrictedKeyword;
 import org.sonar.java.model.ModifiersUtils;
 import org.sonar.java.model.declaration.ClassTreeImpl;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
 import org.sonar.plugins.java.api.tree.AnnotationTree;
 import org.sonar.plugins.java.api.tree.ClassTree;
@@ -149,22 +150,9 @@ public class SyntaxHighlighterVisitor extends SubscriptionVisitor {
   }
 
   private void highlight(Tree from, Tree to, TypeOfText typeOfText) {
-    SyntaxToken firstToken = from.firstToken();
-    SyntaxToken lastToken = to.lastToken();
-
-    final int endLine;
-    final int endColumn;
-    if (lastToken.text().startsWith("\"\"\"")) {
-      // slow path for Text Blocks
-      String[] lines = lastToken.text().split("\\r\\n|\\n|\\r");
-      endLine = lastToken.line() + lines.length - 1;
-      endColumn = (lines.length == 1 ? lastToken.column() : 0) + lines[lines.length - 1].length();
-    } else {
-      endLine = lastToken.line();
-      endColumn = lastToken.column() + lastToken.text().length();
-    }
-
-    highlighting.highlight(firstToken.line(), firstToken.column(), endLine, endColumn, typeOfText);
+    TextSpan first = from.firstToken().textSpan();
+    TextSpan last = to.lastToken().textSpan();
+    highlighting.highlight(first.startLine, first.startCharacter, last.endLine, last.endCharacter, typeOfText);
   }
 
   @Override

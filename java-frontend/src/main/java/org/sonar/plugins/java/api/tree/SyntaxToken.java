@@ -19,9 +19,9 @@
  */
 package org.sonar.plugins.java.api.tree;
 
-import org.sonar.java.annotations.Beta;
-
 import java.util.List;
+import org.sonar.java.annotations.Beta;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 
 /**
  * Represents a token in the syntax tree.
@@ -38,4 +38,6 @@ public interface SyntaxToken extends Tree {
   int line();
 
   int column();
+
+  TextSpan  textSpan();
 }

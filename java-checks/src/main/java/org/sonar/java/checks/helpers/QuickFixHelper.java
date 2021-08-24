@@ -24,6 +24,7 @@ import org.sonar.java.annotations.Beta;
 import org.sonar.java.collections.ListUtils;
 import org.sonar.java.model.DefaultJavaFileScannerContext;
 import org.sonar.java.model.JavaTree;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.java.reporting.InternalJavaIssueBuilder;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
@@ -89,13 +90,17 @@ public class QuickFixHelper {
 
   public static String contentForTree(Tree tree, JavaFileScannerContext context) {
     SyntaxToken firstToken = tree.firstToken();
-    SyntaxToken endToken = tree.lastToken();
+    if (firstToken == null) {
+      return "";
+    }
+    TextSpan firstTextSpan = firstToken.textSpan();
+    TextSpan lastTextSpan = tree.lastToken().textSpan();
 
-    int startLine = firstToken.line();
-    int endLine = endToken.line();
+    int startLine = firstTextSpan.startLine;
+    int endLine = lastTextSpan.endLine;
 
-    int beginIndex = firstToken.column();
-    int endIndex = endToken.column() + endToken.text().length();
+    int beginIndex = firstTextSpan.startCharacter;
+    int endIndex = lastTextSpan.endCharacter;
 
     if (startLine == endLine) {
       // one-liners
@@ -111,7 +116,7 @@ public class QuickFixHelper {
     for (int i = 1; i < lines.size() - 1; i++) {
       sb.append(lines.get(i));
     }
-    sb.append(ListUtils.getLast(lines).substring(0, endIndex));
+    sb.append(ListUtils.getLast(lines), 0, endIndex);
 
     return sb.toString();
   }

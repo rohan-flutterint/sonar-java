@@ -35,6 +35,7 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.java.TestUtils;
 import org.sonar.java.ast.JavaAstScanner;
 import org.sonar.java.ast.visitors.SubscriptionVisitor;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
@@ -152,7 +153,13 @@ class TreeTokenCompletenessTest {
       }
       String text = token.text();
       print(text);
-      lastColumn += text.length();
+      TextSpan textSpan = token.textSpan();
+      if (textSpan.startLine == textSpan.endLine) {
+        lastColumn += textSpan.endCharacter - textSpan.startCharacter;
+      } else {
+        lastLine += textSpan.endLine - textSpan.startLine;
+        lastColumn = textSpan.endCharacter;
+      }
     }
 
     private void printTrivia(SyntaxTrivia trivia) {
@@ -162,9 +169,6 @@ class TreeTokenCompletenessTest {
         newLine();
       }
       int numberEOL = StringUtils.countMatches(comment, EOL);
-      if (numberEOL > 0) {
-        lastLine = trivia.startLine() + numberEOL; // recalculate the last line
-      }
       int deltaColumn = trivia.column() - lastColumn;
       for (int i = 0; i < deltaColumn; i++) {
         space();
@@ -172,6 +176,7 @@ class TreeTokenCompletenessTest {
       print(comment);
 
       if (numberEOL > 0) {
+        lastLine = trivia.startLine() + numberEOL; // recalculate the last line
         lastColumn = StringUtils.substringAfterLast(comment, EOL).length();
       } else {
         lastColumn += comment.length();
@@ -185,7 +190,7 @@ class TreeTokenCompletenessTest {
     private void newLine() {
       lastColumn = 0;
       lastLine++;
-      resultBuilder.append(System.getProperty("line.separator"));
+      resultBuilder.append(EOL);
     }
 
     public void space() {

@@ -19,10 +19,12 @@
  */
 package org.sonar.java.ast.visitors;
 
+import java.util.List;
 import org.sonar.api.batch.sensor.symbol.NewSymbol;
 import org.sonar.api.batch.sensor.symbol.NewSymbolTable;
 import org.sonar.java.model.JUtils;
 import org.sonar.java.model.declaration.VariableTreeImpl;
+import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.semantic.Symbol;
 import org.sonar.plugins.java.api.tree.BaseTreeVisitor;
 import org.sonar.plugins.java.api.tree.ClassTree;
@@ -33,12 +35,9 @@ import org.sonar.plugins.java.api.tree.ImportTree;
 import org.sonar.plugins.java.api.tree.LabeledStatementTree;
 import org.sonar.plugins.java.api.tree.MemberSelectExpressionTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
-import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 import org.sonar.plugins.java.api.tree.TypeParameterTree;
 import org.sonar.plugins.java.api.tree.VariableTree;
-
-import java.util.List;
 
 public class SonarSymbolTableVisitor extends BaseTreeVisitor {
 
@@ -120,11 +119,11 @@ public class SonarSymbolTableVisitor extends BaseTreeVisitor {
   }
 
   private void createSymbol(IdentifierTree declaration, List<IdentifierTree> usages) {
-    SyntaxToken syntaxToken = declaration.identifierToken();
-    NewSymbol newSymbol = newSymbolTable.newSymbol(syntaxToken.line(), syntaxToken.column(), syntaxToken.line(), syntaxToken.text().length() + syntaxToken.column());
+    TextSpan textSpan = declaration.identifierToken().textSpan();
+    NewSymbol newSymbol = newSymbolTable.newSymbol(textSpan.startLine, textSpan.startCharacter, textSpan.endLine, textSpan.endCharacter);
     for (IdentifierTree usage : usages) {
-      syntaxToken = usage.identifierToken();
-      newSymbol.newReference(syntaxToken.line(), syntaxToken.column(), syntaxToken.line(), syntaxToken.text().length() + syntaxToken.column());
+      textSpan = usage.identifierToken().textSpan();
+      newSymbol.newReference(textSpan.startLine, textSpan.startCharacter, textSpan.endLine, textSpan.endCharacter);
     }
   }
 

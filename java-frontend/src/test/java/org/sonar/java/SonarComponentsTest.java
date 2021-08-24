@@ -86,6 +86,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sonar.java.SonarComponents.fileLines;
 import static org.sonar.java.TestUtils.computeLineEndOffsets;
 
 @ExtendWith(MockitoExtension.class)
@@ -429,7 +430,7 @@ class SonarComponentsTest {
       .allMatch(line -> line.endsWith("\n"));
     assertThat(fileLinesWithLineEndings.get(0)).hasSize(12);
 
-    verify(inputFile, times(1)).contents();
+    verify(inputFile, times(3)).contents();
     reset(inputFile);
   }
 
@@ -589,6 +590,54 @@ class SonarComponentsTest {
 
     sonarComponents = new SonarComponents(null, null, null, null, checkFactory);
     assertThat(sonarComponents.jspChecks()).isEmpty();
+  }
+
+  @Test
+  void file_lines() {
+    assertThat(fileLines("", true))
+      .containsExactly("");
+    assertThat(fileLines("", false))
+      .containsExactly("");
+
+    assertThat(fileLines("  foo", true))
+      .containsExactly("  foo");
+    assertThat(fileLines("  foo", false))
+      .containsExactly("  foo");
+
+    assertThat(fileLines("\n", true))
+      .containsExactly("\n");
+    assertThat(fileLines("\n", false))
+      .containsExactly("");
+
+    assertThat(fileLines("foo\n", true))
+      .containsExactly("foo\n");
+    assertThat(fileLines("foo\n", false))
+      .containsExactly("foo");
+
+    assertThat(fileLines("a\nb", true))
+      .containsExactly("a\n", "b");
+    assertThat(fileLines("a\nb", false))
+      .containsExactly("a", "b");
+
+    assertThat(fileLines("a\nb\n", true))
+      .containsExactly("a\n", "b\n");
+    assertThat(fileLines("a\nb\n", false))
+      .containsExactly("a", "b");
+
+    assertThat(fileLines("a\nb\nc", true))
+      .containsExactly("a\n", "b\n", "c");
+    assertThat(fileLines("a\nb\nc", false))
+      .containsExactly("a", "b", "c");
+
+    assertThat(fileLines("a\nb\nc\n", true))
+      .containsExactly("a\n", "b\n", "c\n");
+    assertThat(fileLines("a\nb\nc\n", false))
+      .containsExactly("a", "b", "c");
+
+    assertThat(fileLines("a\n\nb\r\rc\r\n\r\nd\n\r\n\r", true))
+      .containsExactly("a\n", "\n", "b\r", "\r", "c\r\n", "\r\n", "d\n", "\r\n", "\r");
+    assertThat(fileLines("a\n\nb\r\rc\r\n\r\nd\n\r\n\r", false))
+      .containsExactly("a", "", "b", "", "c", "", "d", "", "");
   }
 
   @Rule(key = "jsp")

@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.java.Preconditions;
 import org.sonar.plugins.java.api.JavaCheck;
-import org.sonar.plugins.java.api.tree.LiteralTree;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 
@@ -146,12 +145,8 @@ public class AnalyzerMessage {
   }
 
   public static AnalyzerMessage.TextSpan textSpanFor(Tree syntaxNode) {
-    if (syntaxNode.is(Tree.Kind.TEXT_BLOCK)) {
-      return textSpanForTextBlock(((LiteralTree) syntaxNode).token());
-    }
-    SyntaxToken firstSyntaxToken = getNonEmptyTree(syntaxNode).firstToken();
-    SyntaxToken lastSyntaxToken = getNonEmptyTree(syntaxNode).lastToken();
-    return textSpanBetween(firstSyntaxToken, lastSyntaxToken);
+    Tree nonEmptyTree = getNonEmptyTree(syntaxNode);
+    return textSpanBetween(nonEmptyTree.firstToken(), nonEmptyTree.lastToken());
   }
 
   public static AnalyzerMessage.TextSpan textSpanBetween(Tree startTree, Tree endTree) {
@@ -170,12 +165,13 @@ public class AnalyzerMessage {
   }
 
   private static AnalyzerMessage.TextSpan textSpanBetween(SyntaxToken firstSyntaxToken, SyntaxToken lastSyntaxToken) {
+    TextSpan first = firstSyntaxToken.textSpan();
+    TextSpan last = lastSyntaxToken.textSpan();
     AnalyzerMessage.TextSpan location = new AnalyzerMessage.TextSpan(
-      firstSyntaxToken.line(),
-      firstSyntaxToken.column(),
-      lastSyntaxToken.line(),
-      lastSyntaxToken.column() + lastSyntaxToken.text().length()
-    );
+      first.startLine,
+      first.startCharacter,
+      last.endLine,
+      last.endCharacter);
     checkLocation(firstSyntaxToken, location);
     return location;
   }
@@ -184,26 +180,6 @@ public class AnalyzerMessage {
     Preconditions.checkState(!location.isEmpty(),
       "Invalid issue location: Text span is empty when trying reporting on (l:%s, c:%s).",
       firstSyntaxToken.line(), firstSyntaxToken.column());
-  }
-
-  private static AnalyzerMessage.TextSpan textSpanForTextBlock(SyntaxToken syntaxToken) {
-    int[] end = endOfTextBlock(syntaxToken);
-    AnalyzerMessage.TextSpan location = new AnalyzerMessage.TextSpan(
-      syntaxToken.line(),
-      syntaxToken.column(),
-      end[0],
-      end[1]
-    );
-    checkLocation(syntaxToken, location);
-    return location;
-  }
-
-  private static int[] endOfTextBlock(SyntaxToken syntaxToken) {
-    String text = syntaxToken.text();
-    String[] lines = text.split("(\\r)?\\n|\\r");
-    int endLine = syntaxToken.line() + lines.length - 1;
-    int endColumn = lines[lines.length - 1].length();
-    return new int[] {endLine, endColumn};
   }
 
   /**
