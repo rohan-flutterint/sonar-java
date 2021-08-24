@@ -19,34 +19,39 @@
  */
 package org.sonar.plugins.java.api.tree;
 
-import java.util.List;
 import javax.annotation.Nonnull;
-import org.sonar.java.annotations.Beta;
+import org.sonar.java.model.InternalRange;
 
-/**
- * Represents a token in the syntax tree.
- *
- * @since plugin 2.4
- */
-@Beta
-public interface SyntaxToken extends Tree {
-
-  String text();
-
-  List<SyntaxTrivia> trivias();
-
-  int line();
+public interface Range {
 
   /**
-   * Warning: this is not the column number starting at 1 but the column offset starting at 0
-   * @return column offset starting at 0
-   * @deprecated for removal, since = 7.3, "column()" can be replaced by range().start().columnOffset()
-   * and "column() + 1" can be replaced by range().start().column()
+   * @return the inclusive start position of the range. The character at this location is part of the range.
    */
-  @Deprecated
-  int column();
-
   @Nonnull
-  Range range();
+  Position start();
+
+  /**
+   * @return the exclusive end position of the range. The character at this location is not part of the range.
+   */
+  @Nonnull
+  Position end();
+
+  /**
+   * @param start is inclusive
+   * @param end is exclusive
+   */
+  @Nonnull
+  static Range at(Position start, Position end) {
+    return new InternalRange(start, end);
+  }
+
+  /**
+   * @param startColumn is inclusive
+   * @param endColumn is exclusive
+   */
+  @Nonnull
+  static Range at(int startLine, int startColumn, int endLine, int endColumn) {
+    return new InternalRange(Position.at(startLine,startColumn), Position.at(endLine, endColumn));
+  }
 
 }
