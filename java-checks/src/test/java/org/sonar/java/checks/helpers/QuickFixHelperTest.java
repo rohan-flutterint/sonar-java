@@ -19,11 +19,13 @@
  */
 package org.sonar.java.checks.helpers;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.sonar.java.model.InternalSyntaxToken;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.CompilationUnitTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QuickFixHelperTest {
@@ -69,4 +71,74 @@ class QuickFixHelperTest {
     assertThat(QuickFixHelper.previousToken(a.declarationKeyword())).isEqualTo(a.declarationKeyword());
   }
 
+  @Nested
+  class Imports {
+
+    /**
+     * Can only happen in a package-info file
+     */
+    @Test
+    void no_imports() {
+      String source = "package org.foo;";
+
+      CompilationUnitTree cut = JParserTestUtils.parse(source);
+
+      assertThat(QuickFixHelper.requiresImportOf("org.foo.A", cut)).isFalse();
+      assertThat(QuickFixHelper.requiresImportOf("org.bar.A", cut)).isTrue();
+    }
+
+    @Test
+    void imported_via_star_import() {
+      String source = "package org.foo;\n"
+        + "import java.util.*;\n"
+        + "import org.bar.B;\n"
+        + "import static java.util.function.Function.identity;\n"
+        + "class A { }";
+
+      CompilationUnitTree cut = JParserTestUtils.parse(source);
+
+      assertThat(QuickFixHelper.requiresImportOf("org.foo.B", cut)).isFalse();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.List", cut)).isFalse();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.Collections", cut)).isFalse();
+
+      // requires import
+      assertThat(QuickFixHelper.requiresImportOf("org.bar.A", cut)).isTrue();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.function.Function", cut)).isTrue();
+    }
+
+    @Test
+    void imported_via_explicit_import() {
+      String source = "package org.foo;\n"
+        + "import java.util.List;\n"
+        + "import org.bar.B;\n"
+        + "import static java.util.function.Function.identity;\n"
+        + "class A { }";
+
+      CompilationUnitTree cut = JParserTestUtils.parse(source);
+
+      assertThat(QuickFixHelper.requiresImportOf("org.foo.B", cut)).isFalse();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.List", cut)).isFalse();
+
+      // requires import
+      assertThat(QuickFixHelper.requiresImportOf("org.bar.A", cut)).isTrue();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.Collections", cut)).isTrue();
+    }
+
+    @Test
+    void default_package() {
+      String source = "import java.util.List;\n"
+        + "import org.bar.B;\n"
+        + "class A { }";
+
+      CompilationUnitTree cut = JParserTestUtils.parse(source);
+
+      assertThat(QuickFixHelper.requiresImportOf("java.util.List", cut)).isFalse();
+      assertThat(QuickFixHelper.requiresImportOf("org.bar.B", cut)).isFalse();
+
+      // requires import
+      assertThat(QuickFixHelper.requiresImportOf("org.foo.B", cut)).isTrue();
+      assertThat(QuickFixHelper.requiresImportOf("org.bar.A", cut)).isTrue();
+      assertThat(QuickFixHelper.requiresImportOf("java.util.Collections", cut)).isTrue();
+    }
+  }
 }

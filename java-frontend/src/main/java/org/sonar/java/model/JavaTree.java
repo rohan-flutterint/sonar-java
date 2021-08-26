@@ -128,6 +128,10 @@ public abstract class JavaTree implements Tree {
     this.parent = parent;
   }
 
+  public final CompilationUnitTree root() {
+    return root;
+  }
+
   /**
    * Creates iterable for children of this node.
    * Note that iterable may contain {@code null} elements.

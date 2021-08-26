@@ -19,13 +19,19 @@
  */
 package org.sonar.java.checks.helpers;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.sonar.java.annotations.Beta;
 import org.sonar.java.collections.ListUtils;
 import org.sonar.java.model.DefaultJavaFileScannerContext;
 import org.sonar.java.model.JavaTree;
 import org.sonar.java.reporting.InternalJavaIssueBuilder;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
+import org.sonar.plugins.java.api.tree.CompilationUnitTree;
+import org.sonar.plugins.java.api.tree.ExpressionTree;
+import org.sonar.plugins.java.api.tree.ImportTree;
+import org.sonar.plugins.java.api.tree.PackageDeclarationTree;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 
@@ -117,5 +123,50 @@ public class QuickFixHelper {
     sb.append(ListUtils.getLast(lines).substring(0, endIndex));
 
     return sb.toString();
+  }
+
+  public static boolean requiresImportOf(String requiredType, Tree base) {
+    CompilationUnitTree cut = ((JavaTree) base).root();
+
+    Set<String> importedTypes = new HashSet<>();
+    Set<String> startImportPackages = new HashSet<>();
+    cut.imports()
+      .stream()
+      .filter(importClauseTree -> importClauseTree.is(Tree.Kind.IMPORT))
+      .map(ImportTree.class::cast)
+      .filter(importTree -> !importTree.isStatic())
+      .map(ImportTree::qualifiedIdentifier)
+      .map(ExpressionTree.class::cast)
+      .map(ExpressionsHelper::concatenate)
+      .forEach(importName -> {
+        if (importName.endsWith(".*")) {
+          startImportPackages.add(typeToPackageName(importName));
+        } else {
+          importedTypes.add(importName);
+        }
+      });
+
+    if (importedTypes.contains(requiredType)) {
+      // explicitly imported
+      return false;
+    }
+
+    String requiredPackage = typeToPackageName(requiredType);
+    if (startImportPackages.contains(requiredPackage)) {
+      // included in a star-import
+      return false;
+    }
+
+    PackageDeclarationTree packageDeclaration = cut.packageDeclaration();
+    if (packageDeclaration == null) {
+      return true;
+    }
+
+    String packageName = ExpressionsHelper.concatenate(packageDeclaration.packageName());
+    return !packageName.equals(requiredPackage);
+  }
+
+  private static String typeToPackageName(String requiredType) {
+    return requiredType.substring(0, requiredType.lastIndexOf("."));
   }
 }
