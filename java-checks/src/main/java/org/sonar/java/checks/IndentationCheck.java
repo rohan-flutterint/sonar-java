@@ -78,7 +78,7 @@ public class IndentationCheck extends BaseTreeVisitor implements JavaFileScanner
     int previousLevel = expectedLevel;
     if (isAnonymous) {
       excludeIssueAtLine = tree.openBraceToken().line();
-      expectedLevel = tree.closeBraceToken().column();
+      expectedLevel = tree.closeBraceToken().range().start().columnOffset();
     }
     newBlock();
     checkIndentation(tree.members());
@@ -118,7 +118,7 @@ public class IndentationCheck extends BaseTreeVisitor implements JavaFileScanner
       BlockTree block = (BlockTree) body;
       excludeIssueAtLine = block.openBraceToken().line();
       int previousLevel = expectedLevel;
-      expectedLevel = block.closeBraceToken().column();
+      expectedLevel = block.closeBraceToken().range().start().columnOffset();
       scan(block);
       expectedLevel = previousLevel;
     } else {
@@ -148,7 +148,7 @@ public class IndentationCheck extends BaseTreeVisitor implements JavaFileScanner
     int bodySize = body.size();
     if (bodySize > 0 && body.get(0).is(Kind.BLOCK)) {
       expectedLevel -= indentationLevel;
-      checkIndentation(body.get(0), ListUtils.getLast(labels).colonOrArrowToken().column() + 2);
+      checkIndentation(body.get(0), ListUtils.getLast(labels).colonOrArrowToken().range().start().columnOffset() + 2);
       newBody = body.subList(1, bodySize);
     }
     checkIndentation(newBody);
@@ -178,8 +178,8 @@ public class IndentationCheck extends BaseTreeVisitor implements JavaFileScanner
   private void checkIndentation(Tree tree, int expectedLevel) {
     SyntaxToken firstSyntaxToken = tree.firstToken();
     String line = fileLines.get(firstSyntaxToken.line() - 1);
-    int level = firstSyntaxToken.column();
-    for (int i = 0; i < firstSyntaxToken.column() && i < line.length(); i++) {
+    int level = firstSyntaxToken.range().start().columnOffset();
+    for (int i = 0; i < firstSyntaxToken.range().start().columnOffset() && i < line.length(); i++) {
       if (line.charAt(i) == '\t') {
         level += indentationLevel - 1;
       }

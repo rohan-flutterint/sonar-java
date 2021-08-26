@@ -30,7 +30,7 @@ import org.sonar.plugins.java.api.JavaVersion;
 import org.sonar.plugins.java.api.semantic.Symbol;
 import org.sonar.plugins.java.api.tree.MethodTree;
 import org.sonar.plugins.java.api.tree.ModifiersTree;
-import org.sonar.plugins.java.api.tree.SyntaxToken;
+import org.sonar.plugins.java.api.tree.Position;
 import org.sonar.plugins.java.api.tree.Tree;
 
 @Rule(key = "S1161")
@@ -108,10 +108,10 @@ public class OverrideAnnotationCheck extends IssuableSubscriptionVisitor {
   private String newLineWithPadding(Tree tree) {
     String endOfLineCharacters = endOfLineCharacters(tree);
 
-    SyntaxToken firstToken = tree.firstToken();
+    Position firstTokenStart = tree.firstToken().range().start();
     String padding = context.getFileLines()
-      .get(firstToken.line() - 1)
-      .substring(0, firstToken.column());
+      .get(firstTokenStart.lineOffset())
+      .substring(0, firstTokenStart.columnOffset());
 
     return endOfLineCharacters + padding;
   }

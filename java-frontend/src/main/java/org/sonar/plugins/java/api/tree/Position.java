@@ -27,17 +27,22 @@ public interface Position extends Comparable<Position> {
   int FIRST_COLUMN = 1;
 
   /**
-   * The line number in a file. First line is 1.
+   * The line number in a file. First line number is 1.
    */
   int line();
 
   /**
-   * The column number at the specified line. First column is 1. (column() == columnOffset() + 1)
+   * The line offset in a file. First line offset is 0. (lineOffset() == line() - 1)
+   */
+  int lineOffset();
+
+  /**
+   * The column number at the specified line. First column number is 1. (column() == columnOffset() + 1)
    */
   int column();
 
   /**
-   * The column offset at the specified line. First column is 0. (columnOffset() == column() - 1)
+   * The column offset at the specified line. First column offset is 0. (columnOffset() == column() - 1)
    */
   int columnOffset();
 
@@ -50,5 +55,13 @@ public interface Position extends Comparable<Position> {
   static Position atOffset(int line, int columnOffset) {
     return at(line, columnOffset + 1);
   }
+
+  boolean isLessThan(Position other);
+
+  boolean isLessThanOrEqualTo(Position other);
+
+  boolean isGreaterThan(Position other);
+
+  boolean isGreaterThanOrEqualTo(Position other);
 
 }

@@ -184,16 +184,11 @@ public class SyntaxHighlighterVisitor extends SubscriptionVisitor {
 
   @Override
   public void visitTrivia(SyntaxTrivia syntaxTrivia) {
-    String comment = syntaxTrivia.comment();
-    int startLine = syntaxTrivia.startLine();
-    int startColumn = syntaxTrivia.column();
-
-    String[] lines = comment.split("\\r\\n|\\n|\\r");
-    int numberLines = lines.length;
-
-    int endLine = startLine + numberLines - 1;
-    int endColumn = numberLines == 1 ? (startColumn + comment.length()) : lines[numberLines - 1].length();
-    boolean isJavadoc = lines[0].trim().startsWith("/**");
-    highlighting.highlight(startLine, startColumn, endLine, endColumn, isJavadoc ? TypeOfText.STRUCTURED_COMMENT : TypeOfText.COMMENT);
+    Range range = syntaxTrivia.range();
+    boolean isJavadoc = syntaxTrivia.comment().startsWith("/**");
+    TypeOfText typeOfText = isJavadoc ? TypeOfText.STRUCTURED_COMMENT : TypeOfText.COMMENT;
+    highlighting.highlight(
+      range.start().line(), range.start().columnOffset(),
+      range.end().line(), range.end().columnOffset(), typeOfText);
   }
 }

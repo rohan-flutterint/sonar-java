@@ -45,6 +45,11 @@ public class InternalPosition implements Position {
   }
 
   @Override
+  public int lineOffset() {
+    return line - 1;
+  }
+
+  @Override
   public int column() {
     return column;
   }
@@ -62,6 +67,26 @@ public class InternalPosition implements Position {
   @Override
   public int compareTo(Position o) {
     return (line == o.line()) ? Integer.compare(column, o.column()) : Integer.compare(line, o.line());
+  }
+
+  @Override
+  public boolean isLessThan(Position other) {
+    return compareTo(other) < 0;
+  }
+
+  @Override
+  public boolean isLessThanOrEqualTo(Position other) {
+    return compareTo(other) <= 0;
+  }
+
+  @Override
+  public boolean isGreaterThan(Position other) {
+    return compareTo(other) > 0;
+  }
+
+  @Override
+  public boolean isGreaterThanOrEqualTo(Position other) {
+    return compareTo(other) >= 0;
   }
 
   @Override
