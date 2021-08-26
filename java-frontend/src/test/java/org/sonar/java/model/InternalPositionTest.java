@@ -33,9 +33,13 @@ class InternalPositionTest {
     assertThat(position.lineOffset()).isEqualTo(41);
     assertThat(position.column()).isEqualTo(12);
     assertThat(position.columnOffset()).isEqualTo(11);
-    assertThat(position)
-      .hasToString("42:12")
-      .isEqualTo(Position.at(42, 12));
+    assertThat(position).isEqualTo(Position.at(42, 12));
+  }
+
+  @Test
+  void to_string() {
+    assertThat(Position.at(42, 12))
+      .hasToString("42:12");
   }
 
   @Test
@@ -66,6 +70,38 @@ class InternalPositionTest {
     assertThat(second.isGreaterThanOrEqualTo(first)).isTrue();
     assertThat(second.isLessThan(first)).isFalse();
     assertThat(second.isLessThanOrEqualTo(first)).isFalse();
+
+    first = Position.at(42, 11);
+    second = Position.at(44, 5);
+
+    assertThat(first)
+      .isNotEqualTo(second)
+      .isLessThan(second)
+      .isLessThanOrEqualTo(second);
+
+    assertThat(first.isGreaterThan(second)).isFalse();
+    assertThat(first.isGreaterThanOrEqualTo(second)).isFalse();
+    assertThat(first.isLessThan(second)).isTrue();
+    assertThat(first.isLessThanOrEqualTo(second)).isTrue();
   }
 
+  @Test
+  void equals() {
+    Position p1 = Position.at(42, 12);
+    Position p2 = Position.at(43, 17);
+
+    assertThat(p1.equals(Position.at(42, 12))).isTrue();
+    assertThat(p1).hasSameHashCodeAs(Position.at(42, 12));
+
+    assertThat(p1.equals(p1)).isTrue();
+    assertThat(p1.equals(p2)).isFalse();
+    assertThat(p1.equals(null)).isFalse();
+    assertThat(p1.equals(new Object())).isFalse();
+  }
+
+  @Test
+  void add() {
+    Position p1 = Position.at(42, 12);
+    assertThat(p1.add(4)).isEqualTo(Position.at(42, 16));
+  }
 }

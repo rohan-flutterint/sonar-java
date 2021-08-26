@@ -33,9 +33,9 @@ import org.sonar.plugins.java.api.tree.CaseGroupTree;
 import org.sonar.plugins.java.api.tree.CaseLabelTree;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.LambdaExpressionTree;
+import org.sonar.plugins.java.api.tree.Position;
 import org.sonar.plugins.java.api.tree.StatementTree;
 import org.sonar.plugins.java.api.tree.SwitchStatementTree;
-import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 import org.sonar.plugins.java.api.tree.Tree.Kind;
 import org.sonarsource.analyzer.commons.annotations.DeprecatedRuleKey;
@@ -176,15 +176,16 @@ public class IndentationCheck extends BaseTreeVisitor implements JavaFileScanner
   }
 
   private void checkIndentation(Tree tree, int expectedLevel) {
-    SyntaxToken firstSyntaxToken = tree.firstToken();
-    String line = fileLines.get(firstSyntaxToken.line() - 1);
-    int level = firstSyntaxToken.range().start().columnOffset();
-    for (int i = 0; i < firstSyntaxToken.range().start().columnOffset() && i < line.length(); i++) {
+    Position treeStart = tree.firstToken().range().start();
+    String line = fileLines.get(treeStart.lineOffset());
+    int level = treeStart.columnOffset();
+    int indentLength = Math.min(treeStart.columnOffset(), /* defensive programming */ line.length());
+    for (int i = 0; i < indentLength; i++) {
       if (line.charAt(i) == '\t') {
         level += indentationLevel - 1;
       }
     }
-    if (level != expectedLevel && !isExcluded(tree, firstSyntaxToken.line())) {
+    if (level != expectedLevel && !isExcluded(tree, treeStart.line())) {
       context.addIssue(((JavaTree) tree).getLine(), this, "Make this line start after "+expectedLevel+" spaces to indent the code consistently.");
       isBlockAlreadyReported = true;
     }
