@@ -17,9 +17,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.plugins.java.api.tree;
+package org.sonar.plugins.java.api.location;
 
-import org.sonar.java.model.InternalPosition;
+import org.sonar.java.model.location.InternalPosition;
 
 public interface Position extends Comparable<Position> {
 
@@ -46,8 +46,6 @@ public interface Position extends Comparable<Position> {
    */
   int columnOffset();
 
-  Position add(int columnIncrement);
-
   static Position at(int line, int column) {
     return new InternalPosition(line, column);
   }
@@ -56,12 +54,6 @@ public interface Position extends Comparable<Position> {
     return at(line, columnOffset + 1);
   }
 
-  boolean isLessThan(Position other);
-
-  boolean isLessThanOrEqualTo(Position other);
-
-  boolean isGreaterThan(Position other);
-
-  boolean isGreaterThanOrEqualTo(Position other);
+  boolean isBefore(Position other);
 
 }

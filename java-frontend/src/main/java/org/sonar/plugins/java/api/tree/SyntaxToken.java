@@ -22,6 +22,7 @@ package org.sonar.plugins.java.api.tree;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.sonar.java.annotations.Beta;
+import org.sonar.plugins.java.api.location.Range;
 
 /**
  * Represents a token in the syntax tree.

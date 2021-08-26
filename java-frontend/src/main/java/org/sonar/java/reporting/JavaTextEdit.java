@@ -20,7 +20,7 @@
 package org.sonar.java.reporting;
 
 import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 

@@ -109,8 +109,9 @@ public final class ReassignmentFinder {
   @CheckForNull
   private static Tree getClosestReassignment(SyntaxToken startToken, List<AssignmentExpressionTree> reassignments) {
     return reassignments.stream()
-      .filter(a -> a.firstToken().range().start().isLessThan(startToken.range().start()))
-      .max(Comparator.comparing(a -> a.firstToken().range().start())).orElse(null);
+      .filter(a -> a.firstToken().range().start().isBefore(startToken.range().start()))
+      .max(Comparator.comparing(a -> a.firstToken().range().start()))
+      .orElse(null);
   }
 
 }

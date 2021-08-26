@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.java.Preconditions;
 import org.sonar.plugins.java.api.JavaCheck;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 

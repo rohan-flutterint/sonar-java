@@ -21,7 +21,7 @@ package org.sonar.java.model;
 
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 
 import static org.assertj.core.api.Assertions.assertThat;

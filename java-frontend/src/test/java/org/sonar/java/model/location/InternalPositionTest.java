@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.java.model;
+package org.sonar.java.model.location;
 
 import org.junit.jupiter.api.Test;
-import org.sonar.plugins.java.api.tree.Position;
+import org.sonar.plugins.java.api.location.Position;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,20 +56,14 @@ class InternalPositionTest {
       .isLessThan(second)
       .isLessThanOrEqualTo(second);
 
-    assertThat(first.isGreaterThan(second)).isFalse();
-    assertThat(first.isGreaterThanOrEqualTo(second)).isFalse();
-    assertThat(first.isLessThan(second)).isTrue();
-    assertThat(first.isLessThanOrEqualTo(second)).isTrue();
+    assertThat(first.isBefore(second)).isTrue();
 
     assertThat(second)
       .isNotEqualTo(first)
       .isGreaterThan(first)
       .isGreaterThanOrEqualTo(first);
 
-    assertThat(second.isGreaterThan(first)).isTrue();
-    assertThat(second.isGreaterThanOrEqualTo(first)).isTrue();
-    assertThat(second.isLessThan(first)).isFalse();
-    assertThat(second.isLessThanOrEqualTo(first)).isFalse();
+    assertThat(second.isBefore(first)).isFalse();
 
     first = Position.at(42, 11);
     second = Position.at(44, 5);
@@ -79,10 +73,7 @@ class InternalPositionTest {
       .isLessThan(second)
       .isLessThanOrEqualTo(second);
 
-    assertThat(first.isGreaterThan(second)).isFalse();
-    assertThat(first.isGreaterThanOrEqualTo(second)).isFalse();
-    assertThat(first.isLessThan(second)).isTrue();
-    assertThat(first.isLessThanOrEqualTo(second)).isTrue();
+    assertThat(first.isBefore(second)).isTrue();
   }
 
   @Test
@@ -99,9 +90,4 @@ class InternalPositionTest {
     assertThat(p1.equals(new Object())).isFalse();
   }
 
-  @Test
-  void add() {
-    Position p1 = Position.at(42, 12);
-    assertThat(p1.add(4)).isEqualTo(Position.at(42, 16));
-  }
 }

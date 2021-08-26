@@ -17,63 +17,38 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.java.model;
+package org.sonar.plugins.java.api.location;
 
-import javax.annotation.Nonnull;
-import org.sonar.plugins.java.api.tree.Position;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.java.model.location.InternalRange;
 
-public class InternalRange implements Range {
-
-  @Nonnull
-  private final Position start;
-
-  @Nonnull
-  private final Position end;
-
-  public InternalRange(Position start, Position end) {
-    this.start = start;
-    this.end = end;
-  }
+public interface Range {
 
   /**
    * @return the inclusive start position of the range. The character at this location is part of the range.
    */
-  @Nonnull
-  @Override
-  public Position start() {
-    return start;
-  }
+  Position start();
 
   /**
    * @return the exclusive end position of the range. The character at this location is not part of the range.
    */
-  @Nonnull
-  @Override
-  public Position end() {
-    return end;
+  Position end();
+
+  /**
+   * @param start is inclusive.
+   * @param end is exclusive, the character at the "end" location is not part of the range.
+   */
+  static Range at(Position start, Position end) {
+    return new InternalRange(start, end);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    InternalRange that = (InternalRange) o;
-    return start.equals(that.start) && end.equals(that.end);
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * start.hashCode() + end.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "(" + start + ")-(" + end + ")";
+  /**
+   * @param startLine, starting at 1, the line number of the first character of the range.
+   * @param startColumn starting at 1, the character at this location is part of the range.
+   * @param endLine, starting at 1, exclusive, the line number of the last character, the last character is not part of the range.
+   * @param endColumn starting at 1, exclusive, the column number of the last character, the last character is not part of the range.
+   */
+  static Range at(int startLine, int startColumn, int endLine, int endColumn) {
+    return new InternalRange(Position.at(startLine,startColumn), Position.at(endLine, endColumn));
   }
 
 }

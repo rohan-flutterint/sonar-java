@@ -21,8 +21,8 @@ package org.sonar.java.model;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.sonar.plugins.java.api.tree.Position;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Position;
+import org.sonar.plugins.java.api.location.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
@@ -53,7 +53,7 @@ public class InternalSyntaxToken extends JavaTree implements SyntaxToken {
 
   static Range createSingleLineRange(int line, int columnOffset, String value) {
     Position start = Position.atOffset(line, columnOffset);
-    Position end = start.add(value.length());
+    Position end = Position.atOffset(line, columnOffset + value.length());
     return Range.at(start, end);
   }
 

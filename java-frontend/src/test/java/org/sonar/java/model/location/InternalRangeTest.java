@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.java.model;
+package org.sonar.java.model.location;
 
 import org.junit.jupiter.api.Test;
-import org.sonar.plugins.java.api.tree.Position;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Position;
+import org.sonar.plugins.java.api.location.Range;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -20,7 +20,7 @@
 package org.sonar.java.model;
 
 import org.junit.jupiter.api.Test;
-import org.sonar.plugins.java.api.tree.Range;
+import org.sonar.plugins.java.api.location.Range;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
 

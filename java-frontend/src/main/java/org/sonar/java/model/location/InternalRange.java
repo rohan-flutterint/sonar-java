@@ -17,41 +17,58 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.plugins.java.api.tree;
+package org.sonar.java.model.location;
 
-import javax.annotation.Nonnull;
-import org.sonar.java.model.InternalRange;
+import org.sonar.plugins.java.api.location.Position;
+import org.sonar.plugins.java.api.location.Range;
 
-public interface Range {
+public class InternalRange implements Range {
+
+  private final Position start;
+
+  private final Position end;
+
+  public InternalRange(Position start, Position end) {
+    this.start = start;
+    this.end = end;
+  }
 
   /**
    * @return the inclusive start position of the range. The character at this location is part of the range.
    */
-  @Nonnull
-  Position start();
+  @Override
+  public Position start() {
+    return start;
+  }
 
   /**
    * @return the exclusive end position of the range. The character at this location is not part of the range.
    */
-  @Nonnull
-  Position end();
-
-  /**
-   * @param start is inclusive
-   * @param end is exclusive
-   */
-  @Nonnull
-  static Range at(Position start, Position end) {
-    return new InternalRange(start, end);
+  @Override
+  public Position end() {
+    return end;
   }
 
-  /**
-   * @param startColumn is inclusive
-   * @param endColumn is exclusive
-   */
-  @Nonnull
-  static Range at(int startLine, int startColumn, int endLine, int endColumn) {
-    return new InternalRange(Position.at(startLine,startColumn), Position.at(endLine, endColumn));
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    InternalRange that = (InternalRange) o;
+    return start.equals(that.start) && end.equals(that.end);
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * start.hashCode() + end.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "(" + start + ")-(" + end + ")";
   }
 
 }

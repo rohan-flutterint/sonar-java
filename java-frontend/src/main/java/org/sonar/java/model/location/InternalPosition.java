@@ -17,10 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.java.model;
+package org.sonar.java.model.location;
 
 import javax.annotation.Nullable;
-import org.sonar.plugins.java.api.tree.Position;
+import org.sonar.plugins.java.api.location.Position;
 
 public class InternalPosition implements Position {
 
@@ -60,33 +60,13 @@ public class InternalPosition implements Position {
   }
 
   @Override
-  public Position add(int columnIncrement) {
-    return new InternalPosition(line, column + columnIncrement);
-  }
-
-  @Override
   public int compareTo(Position o) {
     return (line == o.line()) ? Integer.compare(column, o.column()) : Integer.compare(line, o.line());
   }
 
   @Override
-  public boolean isLessThan(Position other) {
+  public boolean isBefore(Position other) {
     return compareTo(other) < 0;
-  }
-
-  @Override
-  public boolean isLessThanOrEqualTo(Position other) {
-    return compareTo(other) <= 0;
-  }
-
-  @Override
-  public boolean isGreaterThan(Position other) {
-    return compareTo(other) > 0;
-  }
-
-  @Override
-  public boolean isGreaterThanOrEqualTo(Position other) {
-    return compareTo(other) >= 0;
   }
 
   @Override
