@@ -51,13 +51,13 @@ import org.sonar.java.TestUtils;
 import org.sonar.java.model.JavaTree.CompilationUnitTreeImpl;
 import org.sonar.java.model.declaration.ClassTreeImpl;
 import org.sonar.plugins.java.api.tree.ArrayTypeTree;
-import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.tree.BlockTree;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.CompilationUnitTree;
 import org.sonar.plugins.java.api.tree.EnumConstantTree;
 import org.sonar.plugins.java.api.tree.ForStatementTree;
 import org.sonar.plugins.java.api.tree.MethodTree;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.Tree;
 import org.sonar.plugins.java.api.tree.TryStatementTree;
 import org.sonar.plugins.java.api.tree.VariableTree;
@@ -203,21 +203,21 @@ class JParserTest {
       assertEquals("", t.eofToken().text());
       assertEquals(1, t.eofToken().line());
       assertEquals(0, t.eofToken().column());
-      assertEquals(new TextSpan(1, 0, 1, 0), t.eofToken().textSpan());
+      assertEquals(Range.at(1, 1, 1, 1), t.eofToken().range());
     }
     {
       CompilationUnitTree t = test(" ");
       assertEquals("", t.eofToken().text());
       assertEquals(1, t.eofToken().line());
       assertEquals(1, t.eofToken().column());
-      assertEquals(new TextSpan(1, 1, 1, 1), t.eofToken().textSpan());
+      assertEquals(Range.at(1, 2, 1, 2), t.eofToken().range());
     }
     {
       CompilationUnitTree t = test(" \n");
       assertEquals("", t.eofToken().text());
       assertEquals(2, t.eofToken().line());
       assertEquals(0, t.eofToken().column());
-      assertEquals(new TextSpan(2, 0, 2, 0), t.eofToken().textSpan());
+      assertEquals(Range.at(2, 1, 2, 1), t.eofToken().range());
     }
   }
 

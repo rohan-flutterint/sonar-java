@@ -21,7 +21,7 @@ package org.sonar.java.model;
 
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,37 +30,38 @@ class InternalSyntaxTokenTest {
 
   @Test
   void line_column() {
-    SyntaxToken token = token(1, 0, "");
+    SyntaxToken token = token(1, 1, "");
     assertThat(token.line()).isEqualTo(1);
     assertThat(token.column()).isZero();
     assertThat(token.text()).isEmpty();
 
-    token = token(42, 21, "foo");
+    token = token(42, 22, "foo");
     assertThat(token.line()).isEqualTo(42);
     assertThat(token.column()).isEqualTo(21);
     assertThat(token.text()).isEqualTo("foo");
   }
 
   @Test
-  void text_span() {
-    assertThat(token(1, 0, "").textSpan())
-      .isEqualTo(new TextSpan(1,0,1,0));
+  void range() {
+    assertThat(token(1, 1, "").range())
+      .isEqualTo(Range.at(1,1,1,1));
 
-    assertThat(token(42, 21, "foo").textSpan())
-      .isEqualTo(new TextSpan(42,21,42, 24));
+    assertThat(token(42, 22, "foo").range())
+      .isEqualTo(Range.at(42,22,42, 25));
 
-    assertThat(token(42, 21, "\"\"\"foo\"\"\"").textSpan())
-      .isEqualTo(new TextSpan(42,21,42, 30));
+    assertThat(token(42, 22, "\"\"\"foo\"\"\"").range())
+      .isEqualTo(Range.at(42,22,42, 31));
 
-    assertThat(token(10, 7, "\"\"\"foo\r\n  bar\n  \r  qix\"\"\"").textSpan())
-      .isEqualTo(new TextSpan(10,7,13, 8));
+    assertThat(token(10, 8, "\"\"\"foo\r\n  bar\n  \r  qix\"\"\"").range())
+      .isEqualTo(Range.at(10,8,13, 9));
 
-    assertThat(token(10, 7, "\"\"\"\n\n\n\"\"\"").textSpan())
-      .isEqualTo(new TextSpan(10,7,13, 3));
+    assertThat(token(10, 8, "\"\"\"\n\n\n\"\"\"").range())
+      .isEqualTo(Range.at(10,8,13, 4));
   }
 
   private static InternalSyntaxToken token(int line, int column, String value) {
-    return new InternalSyntaxToken(line, column, value, Collections.emptyList(), false);
+    int columnOffset = column - 1;
+    return new InternalSyntaxToken(line, columnOffset, value, Collections.emptyList(), false);
   }
 
 }

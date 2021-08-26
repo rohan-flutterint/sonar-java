@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.java.Preconditions;
 import org.sonar.plugins.java.api.JavaCheck;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 
@@ -165,13 +166,13 @@ public class AnalyzerMessage {
   }
 
   private static AnalyzerMessage.TextSpan textSpanBetween(SyntaxToken firstSyntaxToken, SyntaxToken lastSyntaxToken) {
-    TextSpan first = firstSyntaxToken.textSpan();
-    TextSpan last = lastSyntaxToken.textSpan();
+    Range first = firstSyntaxToken.range();
+    Range last = lastSyntaxToken.range();
     AnalyzerMessage.TextSpan location = new AnalyzerMessage.TextSpan(
-      first.startLine,
-      first.startCharacter,
-      last.endLine,
-      last.endCharacter);
+      first.start().line(),
+      first.start().columnOffset(),
+      last.end().line(),
+      last.end().columnOffset());
     checkLocation(firstSyntaxToken, location);
     return location;
   }

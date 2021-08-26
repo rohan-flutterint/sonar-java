@@ -19,33 +19,36 @@
  */
 package org.sonar.plugins.java.api.tree;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.sonar.java.annotations.Beta;
+import org.sonar.java.model.InternalPosition;
 
-/**
- * Represents a token in the syntax tree.
- *
- * @since plugin 2.4
- */
-@Beta
-public interface SyntaxToken extends Tree {
+public interface Position extends Comparable<Position> {
 
-  String text();
+  int FIRST_LINE = 1;
+  int FIRST_COLUMN = 1;
 
-  List<SyntaxTrivia> trivias();
-
+  /**
+   * The line number in a file. First line is 1.
+   */
   int line();
 
   /**
-   * Warning: this is not the column number starting at 1 but the column offset starting at 0
-   * @return column offset starting at 0
-   * @deprecated for removal, since = 7.3, use range().start().columnOffset()
+   * The column number at the specified line. First column is 1. (column() == columnOffset() + 1)
    */
-  @Deprecated
   int column();
 
-  @Nonnull
-  Range range();
+  /**
+   * The column offset at the specified line. First column is 0. (columnOffset() == column() - 1)
+   */
+  int columnOffset();
+
+  Position add(int columnIncrement);
+
+  static Position at(int line, int column) {
+    return new InternalPosition(line, column);
+  }
+
+  static Position atOffset(int line, int columnOffset) {
+    return at(line, columnOffset + 1);
+  }
 
 }

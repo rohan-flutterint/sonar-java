@@ -35,7 +35,8 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.java.TestUtils;
 import org.sonar.java.ast.JavaAstScanner;
 import org.sonar.java.ast.visitors.SubscriptionVisitor;
-import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
+import org.sonar.plugins.java.api.tree.Position;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
@@ -125,8 +126,8 @@ class TreeTokenCompletenessTest {
   }
 
   private static class TokenPrinter extends SubscriptionVisitor {
-    private int lastLine = 1;
-    private int lastColumn = 0;
+    private int lastLine = Position.FIRST_LINE;
+    private int lastColumn = Position.FIRST_COLUMN;
     private StringBuilder resultBuilder = new StringBuilder();
 
     @Override
@@ -137,58 +138,29 @@ class TreeTokenCompletenessTest {
     @Override
     public void visitToken(SyntaxToken syntaxToken) {
       for (SyntaxTrivia trivia : syntaxToken.trivias()) {
-        printTrivia(trivia);
+        print(trivia.comment(), trivia.range());
       }
-      printToken(syntaxToken);
+      print(syntaxToken.text(), syntaxToken.range());
     }
 
-    private void printToken(SyntaxToken token) {
-      int deltaLine = token.line() - lastLine;
-      for (int i = 0; i < deltaLine; i++) {
+    private void print(String text, Range range) {
+      while (lastLine < range.start().line()) {
         newLine();
       }
-      int deltaColumn = token.column() - lastColumn;
-      for (int i = 0; i < deltaColumn; i++) {
+      while (lastColumn < range.start().column()) {
         space();
       }
-      String text = token.text();
-      print(text);
-      TextSpan textSpan = token.textSpan();
-      if (textSpan.startLine == textSpan.endLine) {
-        lastColumn += textSpan.endCharacter - textSpan.startCharacter;
-      } else {
-        lastLine += textSpan.endLine - textSpan.startLine;
-        lastColumn = textSpan.endCharacter;
-      }
-    }
-
-    private void printTrivia(SyntaxTrivia trivia) {
-      String comment = trivia.comment();
-      int deltaLine = trivia.startLine() - lastLine;
-      for (int i = 0; i < deltaLine; i++) {
-        newLine();
-      }
-      int numberEOL = StringUtils.countMatches(comment, EOL);
-      int deltaColumn = trivia.column() - lastColumn;
-      for (int i = 0; i < deltaColumn; i++) {
-        space();
-      }
-      print(comment);
-
-      if (numberEOL > 0) {
-        lastLine = trivia.startLine() + numberEOL; // recalculate the last line
-        lastColumn = StringUtils.substringAfterLast(comment, EOL).length();
-      } else {
-        lastColumn += comment.length();
-      }
-    }
-
-    private void print(String text) {
       resultBuilder.append(text);
+      if (range.start().line() == range.end().line()) {
+        lastColumn += range.end().column() - range.start().column();
+      } else {
+        lastLine += range.end().line() - range.start().line();
+        lastColumn = range.end().column();
+      }
     }
 
     private void newLine() {
-      lastColumn = 0;
+      lastColumn = Position.FIRST_COLUMN;
       lastLine++;
       resultBuilder.append(EOL);
     }

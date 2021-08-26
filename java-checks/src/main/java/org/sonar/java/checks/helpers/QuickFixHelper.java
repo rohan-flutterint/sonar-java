@@ -27,6 +27,7 @@ import org.sonar.java.model.JavaTree;
 import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.java.reporting.InternalJavaIssueBuilder;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.Tree;
 
@@ -93,14 +94,14 @@ public class QuickFixHelper {
     if (firstToken == null) {
       return "";
     }
-    TextSpan firstTextSpan = firstToken.textSpan();
-    TextSpan lastTextSpan = tree.lastToken().textSpan();
+    Range firstRange = firstToken.range();
+    Range lastRange = tree.lastToken().range();
 
-    int startLine = firstTextSpan.startLine;
-    int endLine = lastTextSpan.endLine;
+    int startLine = firstRange.start().line();
+    int endLine = lastRange.end().line();
 
-    int beginIndex = firstTextSpan.startCharacter;
-    int endIndex = lastTextSpan.endCharacter;
+    int beginIndex = firstRange.start().columnOffset();
+    int endIndex = lastRange.end().columnOffset();
 
     if (startLine == endLine) {
       // one-liners

@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.java.api.tree;
 
+import javax.annotation.Nonnull;
 import org.sonar.java.annotations.Beta;
 
 /**
@@ -33,6 +34,15 @@ public interface SyntaxTrivia extends Tree {
 
   int startLine();
 
+  /**
+   * Warning: this is not the column number starting at 1 but the column offset starting at 0
+   * @return column offset starting at 0
+   * @deprecated for removal, since = 7.3, use range().start().columnOffset()
+   */
+  @Deprecated
   int column();
+
+  @Nonnull
+  Range range();
 
 }

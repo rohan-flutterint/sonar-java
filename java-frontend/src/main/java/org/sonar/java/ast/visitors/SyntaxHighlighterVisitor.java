@@ -35,12 +35,12 @@ import org.sonar.java.ast.api.JavaKeyword;
 import org.sonar.java.ast.api.JavaRestrictedKeyword;
 import org.sonar.java.model.ModifiersUtils;
 import org.sonar.java.model.declaration.ClassTreeImpl;
-import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
 import org.sonar.plugins.java.api.tree.AnnotationTree;
 import org.sonar.plugins.java.api.tree.ClassTree;
 import org.sonar.plugins.java.api.tree.Modifier;
 import org.sonar.plugins.java.api.tree.ModifiersTree;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
@@ -150,9 +150,11 @@ public class SyntaxHighlighterVisitor extends SubscriptionVisitor {
   }
 
   private void highlight(Tree from, Tree to, TypeOfText typeOfText) {
-    TextSpan first = from.firstToken().textSpan();
-    TextSpan last = to.lastToken().textSpan();
-    highlighting.highlight(first.startLine, first.startCharacter, last.endLine, last.endCharacter, typeOfText);
+    Range first = from.firstToken().range();
+    Range last = to.lastToken().range();
+    highlighting.highlight(
+      first.start().line(), first.start().columnOffset(),
+      last.end().line(), last.end().columnOffset(), typeOfText);
   }
 
   @Override

@@ -20,7 +20,9 @@
 package org.sonar.java.model;
 
 import java.util.List;
-import org.sonar.java.reporting.AnalyzerMessage.TextSpan;
+import javax.annotation.Nonnull;
+import org.sonar.plugins.java.api.tree.Position;
+import org.sonar.plugins.java.api.tree.Range;
 import org.sonar.plugins.java.api.tree.SyntaxToken;
 import org.sonar.plugins.java.api.tree.SyntaxTrivia;
 import org.sonar.plugins.java.api.tree.Tree;
@@ -29,39 +31,46 @@ import org.sonar.plugins.java.api.tree.TreeVisitor;
 public class InternalSyntaxToken extends JavaTree implements SyntaxToken {
 
   private final List<SyntaxTrivia> trivias;
-  private final TextSpan textSpan;
+  private final Range range;
   private final String value;
   private final boolean isEOF;
 
   protected InternalSyntaxToken(InternalSyntaxToken internalSyntaxToken) {
     this.value = internalSyntaxToken.value;
-    this.textSpan = internalSyntaxToken.textSpan;
+    this.range = internalSyntaxToken.range;
     this.trivias = internalSyntaxToken.trivias;
     this.isEOF = internalSyntaxToken.isEOF;
   }
 
-  public InternalSyntaxToken(int line, int column, String value, List<SyntaxTrivia> trivias, boolean isEOF) {
+  public InternalSyntaxToken(int line, int columnOffset, String value, List<SyntaxTrivia> trivias, boolean isEOF) {
     this.value = value;
-    this.textSpan = createTextSpan(line, column, value);
     this.trivias = trivias;
     this.isEOF = isEOF;
+    range = value.startsWith("\"\"\"")
+      ? createMultiLineRange(line, columnOffset, value)
+      : createSingleLineRange(line, columnOffset, value);
   }
 
-  private static TextSpan createTextSpan(int line, int column, String value) {
-    if (value.startsWith("\"\"\"")) {
-      // slow path for Text Blocks
-      String[] lines = value.split("\r\n|\n|\r", -1);
-      String lastLine = lines[lines.length - 1];
-      int endLine = line + lines.length - 1;
-      int endColumn = (lines.length == 1 ? column : 0) + lastLine.length();
-      return new TextSpan(line, column, endLine, endColumn);
-    }
-    return new TextSpan(line, column, line, column + value.length());
+  static Range createSingleLineRange(int line, int columnOffset, String value) {
+    Position start = Position.atOffset(line, columnOffset);
+    Position end = start.add(value.length());
+    return Range.at(start, end);
   }
 
+  static Range createMultiLineRange(int line, int columnOffset, String value) {
+    Position start = Position.atOffset(line, columnOffset);
+    String[] lines = value.split("\r\n|\n|\r", -1);
+    String lastLine = lines[lines.length - 1];
+    int endLine = line + lines.length - 1;
+    int endColumn = (lines.length == 1 ? start.column() : Position.FIRST_COLUMN) + lastLine.length();
+    Position end = Position.at(endLine, endColumn);
+    return Range.at(start, end);
+  }
+
+  @Nonnull
   @Override
-  public TextSpan textSpan() {
-    return textSpan;
+  public Range range() {
+    return range;
   }
 
   @Override
@@ -91,17 +100,17 @@ public class InternalSyntaxToken extends JavaTree implements SyntaxToken {
 
   @Override
   public int getLine() {
-    return textSpan.startLine;
+    return range.start().line();
   }
 
   @Override
   public int line() {
-    return textSpan.startLine;
+    return range.start().line();
   }
 
   @Override
   public int column() {
-    return textSpan.startCharacter;
+    return range.start().columnOffset();
   }
 
   @Override
